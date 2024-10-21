@@ -20,14 +20,17 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-
+//defined class ViewModel which one is manage by Hilt. @Inject - in constuctor means get BluetoothController when create ViewModel
 @HiltViewModel
 class BluetoothViewModel @Inject constructor(
+//reference to instance BluetoothController
     private val bluetoothController: BluetoothController
 ): ViewModel() {
-
+//type Job is use to to tasks works in background
     private var deviceConnectionJob: Job? = null
+//is used to active refresh UI if something happen.
     private val _state = MutableStateFlow(BluetoothUiState())
+//combine 3 StateFlow in 1 StateFlow
     val state = combine(
         bluetoothController.scannedDevices,
         bluetoothController.pairedDevices,
@@ -39,7 +42,7 @@ class BluetoothViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
-
+//init is responsible for subscribe stateFlows if any stateFlow will be change this block update _stateFlow
     init {
         bluetoothController.isConnected.onEach { isConnected ->
             _state.update { it.copy(isConnected = isConnected) }
@@ -49,7 +52,7 @@ class BluetoothViewModel @Inject constructor(
             _state.update { it.copy(errorMessage = error) }
         }.launchIn(viewModelScope)
     }
-
+//function responsible for create connection with bluetooth device.
     fun connectToDevice(device: BluetoothDeviceDomain) {
         _state.update { it.copy(isConnecting = true) }
         deviceConnectionJob = bluetoothController
@@ -80,7 +83,7 @@ class BluetoothViewModel @Inject constructor(
     fun stopScan() {
         bluetoothController.stopDiscovery()
     }
-
+//function subscribe outcomes binding with create bluetooth devices.
     private fun Flow<ConnectionResult>.listen(): Job {
         return onEach { result ->
             when(result) {

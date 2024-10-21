@@ -1,5 +1,6 @@
 package com.example.activityrecognitionapp.presentation
 
+
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -11,7 +12,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.CircularProgressIndicator
@@ -29,8 +29,10 @@ import com.plcoding.bluetoothchat.ui.theme.BluetoothChatTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
 
+class MainActivity : ComponentActivity() {
+//create bluetoothManager - software manadzer bluetooth
+//crete bluetoothAdapter - bluetooth device module
     private val bluetoothManager by lazy {
         applicationContext.getSystemService(BluetoothManager::class.java)
     }
@@ -41,13 +43,14 @@ class MainActivity : ComponentActivity() {
     private val isBluetoothEnabled: Boolean
         get() = bluetoothAdapter?.isEnabled == true
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+//Register Launchers to ask about enable Bluetooth. It open new activity and wait for outcome. Ask user about turn on bluetooth. registerForActivityResult() - register activity
         val enableBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { /* Not needed */ }
-
+//Register Permission Launcher. Lambda function defined what should do after receive answer on permission. We check version android and if app have BLUETOOTH_CONNECT permission
         val permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { perms ->
@@ -61,7 +64,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-
+//App need this permissions for use Bluetooth for newest Android Version 12
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissionLauncher.launch(
                 arrayOf(
@@ -70,12 +73,13 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
-
+//set activity content, create instance BluetoothViewModel use hiltViewModel it menage ViewModel lifecycle
         setContent {
             BluetoothChatTheme {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
+//delegate state to object viewModel which one has logic to menage state. It have to update state activity and we can use it in UI.If state in ViewModel is chamge UI is update
                 val state by viewModel.state.collectAsState()
-
+//LaunchedEffect - JP Compose function inside function is notification about state is errorMessage. Effect will be call if stateMessage will be change.
                 LaunchedEffect(key1 = state.errorMessage) {
                     state.errorMessage?.let {message ->
                         Toast.makeText(
@@ -85,6 +89,8 @@ class MainActivity : ComponentActivity() {
                         ).show()
                     }
                 }
+
+
 
                 LaunchedEffect(key1 = state.isConnected) {
                     if(state.isConnected) {
@@ -107,11 +113,24 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 CircularProgressIndicator()
                                 Text(text = "Connecting...")
+
+                            }
+
+                        }
+                        state.isConnected -> {
+                            Column (
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ){
+                                Text(text = "Connected")
                             }
                         }
                         else -> {
+//DeviceScreen - function which one render screen where are bluetooth devices. Function have 5 arguments.
                             DeviceScreen(
                                 state = state,
+//references to functions from viewModel
                                 onStartScan = viewModel::startScan,
                                 onStopScan = viewModel::stopScan,
                                 onDeviceClick = viewModel::connectToDevice,

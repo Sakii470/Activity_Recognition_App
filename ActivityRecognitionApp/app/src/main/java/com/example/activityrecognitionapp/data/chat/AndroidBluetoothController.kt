@@ -4,15 +4,20 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothGatt
+import android.bluetooth.BluetoothGattCallback
 import android.bluetooth.BluetoothManager
+import android.bluetooth.BluetoothProfile
 import android.bluetooth.BluetoothServerSocket
 import android.bluetooth.BluetoothSocket
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.util.Log
 import com.example.activityrecognitionapp.domain.chat.BluetoothController
 import com.example.activityrecognitionapp.domain.chat.BluetoothDeviceDomain
 import com.example.activityrecognitionapp.domain.chat.ConnectionResult
@@ -33,6 +38,7 @@ import kotlinx.coroutines.launch
 import java.io.IOException
 import java.util.UUID
 
+
 @SuppressLint("MissingPermission")
 class AndroidBluetoothController(
     private val context: Context
@@ -44,6 +50,11 @@ class AndroidBluetoothController(
     private val bluetoothAdapter by lazy {
         bluetoothManager?.adapter
     }
+    private var bluetoothAdapter1: BluetoothAdapter? = null
+
+    var bluetoothGatt: BluetoothGatt? = null
+
+
 
     private val leScanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -113,6 +124,8 @@ class AndroidBluetoothController(
             }
         )
     }
+
+
 
 //    override fun startDiscovery() {
 //        if(!hasPermission(Manifest.permission.BLUETOOTH_SCAN)) {
@@ -187,7 +200,24 @@ override fun stopDiscovery() {
       }.flowOn(Dispatchers.IO)
     }
 
+
+    val gattCallback = object : BluetoothGattCallback() {
+        override fun onConnectionStateChange(
+            gatt: BluetoothGatt,
+            status: Int,
+            newState: Int
+        ) {
+            super.onConnectionStateChange(gatt, status, newState)
+            if (newState == BluetoothProfile.STATE_CONNECTED) {
+                _isConnected.update { true }
+            } else {
+                _isConnected.update { false }
+            }
+        }
+    }
+
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> {
+
         return flow {
             if(!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
                 throw SecurityException("Permission denied")
@@ -195,34 +225,59 @@ override fun stopDiscovery() {
 
             val bluetoothDevice = bluetoothAdapter?.getRemoteDevice(device.address)
 
+           bluetoothGatt = bluetoothDevice?.connectGatt(context, false, gattCallback)
 
-            currentClientSocket= bluetoothDevice
-
-                ?.createRfcommSocketToServiceRecord(
-                    UUID.fromString(Service_UUID)
-                )
-
-            stopDiscovery()
-
-            if(bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == false){
-
-            }
-
-            currentClientSocket?.let { socket ->
+            bluetoothAdapter?.let { adapter ->
                 try {
-                    socket.connect()
-                    emit(ConnectionResult.ConnectionEstabilished)
-
-                } catch (e: IOException) {
-                    socket.close()
-                    currentClientSocket = null
-                    emit(ConnectionResult.Error("Connection was interapted"))
+                    val device = adapter.getRemoteDevice(bluetoothDevice?.address)
+                } catch (exception: IllegalArgumentException) {
+                    Log.w(TAG, "Device not found with provided address.")
                 }
+                // connect to the GATT server on the device
+            } ?: run {
+                Log.w(TAG, "BluetoothAdapter not initialized")
             }
-        }.onCompletion {
-            closeConnection()
-        }.flowOn(Dispatchers.IO)
-    }
+
+
+        }
+
+
+
+//        return flow {
+//            if(!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
+//                throw SecurityException("Permission denied")
+//            }
+//
+//            val bluetoothDevice = bluetoothAdapter?.getRemoteDevice(device.address)
+//
+//
+//            currentClientSocket= bluetoothDevice
+//
+//                ?.createRfcommSocketToServiceRecord(
+//                    UUID.fromString(Service_UUID)
+//                )
+//
+//            stopDiscovery()
+//
+//            if(bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == false){
+//
+//            }
+//
+//            currentClientSocket?.let { socket ->
+//                try {
+//                    socket.connect()
+//                    emit(ConnectionResult.ConnectionEstabilished)
+//
+//                } catch (e: IOException) {
+//                    socket.close()
+//                    currentClientSocket = null
+//                    emit(ConnectionResult.Error("Connection was interapted"))
+//                }
+//            }
+//        }.onCompletion {
+//            closeConnection()
+//        }.flowOn(Dispatchers.IO)
+   }
 
     override fun closeConnection() {
         currentClientSocket?.close()

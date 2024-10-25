@@ -133,8 +133,8 @@ class MainActivity : ComponentActivity() {
 //references to functions from viewModel
                                 onStartScan = viewModel::startScan,
                                 onStopScan = viewModel::stopScan,
-                                onDeviceClick = viewModel::connectToDevice,
-                                onStartServer = viewModel::waitForIncomingConnections
+                                onDeviceClick = viewModel::connectToDevice
+                               // onStartServer = viewModel::waitForIncomingConnections
                             )
                         }
                     }

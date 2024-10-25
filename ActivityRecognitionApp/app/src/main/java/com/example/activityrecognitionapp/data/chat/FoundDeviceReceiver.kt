@@ -1,5 +1,5 @@
-package com.example.activityrecognitionapp.data.chat
-
+//package com.example.activityrecognitionapp.data.chat
+//
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.Context

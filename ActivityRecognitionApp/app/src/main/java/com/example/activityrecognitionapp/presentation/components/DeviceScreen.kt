@@ -20,7 +20,7 @@ fun DeviceScreen(
     state: BluetoothUiState,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
-    onStartServer:() -> Unit,
+    //onStartServer:() -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit
 
 ) {
@@ -47,9 +47,9 @@ fun DeviceScreen(
                 Text(text = "Stop scan")
             }
 
-            Button(onClick = onStartServer) {
-                Text(text = "Start Server")
-            }
+//            Button(onClick = onStartServer) {
+//                Text(text = "Start Server")
+//            }
         }
     }
 }
@@ -73,13 +73,21 @@ fun BluetoothDeviceList(
             )
         }
         items(pairedDevices) { device ->
-            Text(
-                text = "${device.name ?: "(No name)"} - rssi:${device.signalStrength}",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onClick(device) }
-                    .padding(16.dp)
-            )
+            // Sprawdzenie, czy signalStrength jest null
+            val displayText = if (device.signalStrength != null) {
+                "${device.name ?: "(No name)"} - rssi: ${device.signalStrength}"
+            } else {
+                device.name ?: "(No name)"
+            }
+            displayText?.let {
+                Text(
+                    text = it,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onClick(device) }
+                        .padding(16.dp)
+                )
+            }
         }
 
         item {
@@ -90,14 +98,32 @@ fun BluetoothDeviceList(
                 modifier = Modifier.padding(16.dp)
             )
         }
-        items(scannedDevices) { device ->
+        items(scannedDevices){ device ->
             Text(
                 text = "${device.name ?: "(No name)"} - rssi:${device.signalStrength}",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onClick(device) }
+                    .clickable {onClick(device) }
                     .padding(16.dp)
             )
         }
+
+//        item {
+//            Text(
+//                text = "Scanned Devices",
+//                fontWeight = FontWeight.Bold,
+//                fontSize = 24.sp,
+//                modifier = Modifier.padding(16.dp)
+//            )
+//        }
+//        items(scannedDevices) { device ->
+//            Text(
+//                text = "${device.name ?: "(No name)"} - rssi:${device.signalStrength}",
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .clickable { onClick(device) }
+//                    .padding(16.dp)
+//            )
+//        }
     }
 }

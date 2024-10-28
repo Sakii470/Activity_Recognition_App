@@ -46,6 +46,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 //Register Launchers to ask about enable Bluetooth. It open new activity and wait for outcome. Ask user about turn on bluetooth. registerForActivityResult() - register activity
         val enableBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -96,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     if(state.isConnected) {
                         Toast.makeText(
                             applicationContext,
-                            "You are connected!",
+                            "You are connected!: ${state.dataFromBluetooth}",
                             Toast.LENGTH_SHORT
                         ).show()
                     }
@@ -123,7 +124,7 @@ class MainActivity : ComponentActivity() {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ){
-                                Text(text = "Connected")
+                                state.dataFromBluetooth?.let { Text(text = it) }
                             }
                         }
                         else -> {

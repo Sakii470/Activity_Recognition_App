@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ActivityRecognitionApp</string>
     <string name="title_activity_second">SecondActivity</string>
+    <string name="scanned_devices">Scanned Devices</string>
 </resources>

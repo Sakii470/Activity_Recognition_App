@@ -1,6 +1,6 @@
-package com.example.activityrecognitionapp.presentation
+package com.example.blegoogle.presentation
 
-import com.example.activityrecognitionapp.domain.chat.BluetoothDevice
+import android.bluetooth.BluetoothDevice
 
 data class BluetoothUiState(
     val scannedDevices: List<BluetoothDevice> = emptyList(),
@@ -8,5 +8,6 @@ data class BluetoothUiState(
     val isConnected: Boolean = false,
     val isConnecting: Boolean = false,
     val errorMessage: String? = null,
-    val dataFromBluetooth: String? = null
 )
+
+

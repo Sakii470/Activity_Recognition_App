@@ -11,12 +11,14 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.currentCompositionLocalContext
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activityrecognitionapp.domain.chat.BluetoothController
 import com.example.activityrecognitionapp.domain.chat.BluetoothDeviceDomain
-import com.example.activityrecognitionapp.domain.chat.ConnectionResult
 import com.example.activityrecognitionapp.presentation.BluetoothUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +37,7 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 import android.content.Context as Context1
+import com.example.activityrecognitionapp.domain.chat.ConnectionResult
 
 //defined class ViewModel which one is manage by Hilt. @Inject - in constuctor means get BluetoothController when create ViewModel
 @HiltViewModel
@@ -54,6 +57,9 @@ class BluetoothViewModel @Inject constructor(
 
     //is used to active refresh UI if something happen.
     private val _state = MutableStateFlow(BluetoothUiState())
+
+    var dataFromBluetooth by mutableStateOf(0f)
+        private set
 
     //combine 3 StateFlow in 1 StateFlow
     val state = combine(
@@ -111,15 +117,17 @@ class BluetoothViewModel @Inject constructor(
     fun stopScan() {
         bluetoothController.stopDiscovery()
     }
-//function subscribe outcomes binding with create bluetooth devices.
+    //function subscribe outcomes binding with create bluetooth devices.
     private fun Flow<ConnectionResult>.listen(): Job {
         return onEach { result ->
             when(result) {
-                ConnectionResult.ConnectionEstabilished -> {
+                is ConnectionResult.ConnectionEstabilished -> {
                     _state.update { it.copy(
                         isConnected = true,
                         isConnecting = false,
-                        errorMessage = null
+                        errorMessage = null,
+                        dataFromBluetooth = result.dataFromBluetooth
+
                     ) }
                 }
                 is ConnectionResult.Error -> {

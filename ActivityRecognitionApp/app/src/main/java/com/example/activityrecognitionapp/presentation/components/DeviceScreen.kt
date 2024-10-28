@@ -9,11 +9,14 @@ import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.activityrecognitionapp.domain.chat.BluetoothDevice
 import com.example.activityrecognitionapp.presentation.BluetoothUiState
+import com.example.activityrecognitionapp.R
+
 
 @Composable
 fun DeviceScreen(
@@ -73,7 +76,6 @@ fun BluetoothDeviceList(
             )
         }
         items(pairedDevices) { device ->
-            // Sprawdzenie, czy signalStrength jest null
             val displayText = if (device.signalStrength != null) {
                 "${device.name ?: "(No name)"} - rssi: ${device.signalStrength}"
             } else {
@@ -92,7 +94,7 @@ fun BluetoothDeviceList(
 
         item {
             Text(
-                text = "Scanned Devices",
+                text = stringResource(id = R.string.scanned_devices),
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
                 modifier = Modifier.padding(16.dp)
@@ -103,27 +105,9 @@ fun BluetoothDeviceList(
                 text = "${device.name ?: "(No name)"} - rssi:${device.signalStrength}",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable {onClick(device) }
+                    .clickable { onClick(device) }
                     .padding(16.dp)
             )
         }
-
-//        item {
-//            Text(
-//                text = "Scanned Devices",
-//                fontWeight = FontWeight.Bold,
-//                fontSize = 24.sp,
-//                modifier = Modifier.padding(16.dp)
-//            )
-//        }
-//        items(scannedDevices) { device ->
-//            Text(
-//                text = "${device.name ?: "(No name)"} - rssi:${device.signalStrength}",
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .clickable { onClick(device) }
-//                    .padding(16.dp)
-//            )
-//        }
     }
 }

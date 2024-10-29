@@ -47,11 +47,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        //Register Launchers to ask about enable Bluetooth. It open new activity and wait for outcome. Ask user about turn on bluetooth. registerForActivityResult() - register activity
+//Register Launchers to ask about enable Bluetooth. It open new activity and wait for outcome. Ask user about turn on bluetooth. registerForActivityResult() - register activity
         val enableBluetoothLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { /* Not needed */ }
-        //Register Permission Launcher. Lambda function defined what should do after receive answer on permission. We check version android and if app have BLUETOOTH_CONNECT permission
+//Register Permission Launcher. Lambda function defined what should do after receive answer on permission. We check version android and if app have BLUETOOTH_CONNECT permission
         val permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { perms ->
@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-        //App need this permissions for use Bluetooth for newest Android Version 12
+//App need this permissions for use Bluetooth for newest Android Version 12
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissionLauncher.launch(
                 arrayOf(
@@ -74,13 +74,13 @@ class MainActivity : ComponentActivity() {
                 )
             )
         }
-        //Set activity content, create instance BluetoothViewModel use hiltViewModel it menage ViewModel lifecycle
+//set activity content, create instance BluetoothViewModel use hiltViewModel it menage ViewModel lifecycle
         setContent {
             BluetoothChatTheme {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
-                //delegate state to object viewModel which one has logic to menage state. It have to update state activity and we can use it in UI.If state in ViewModel is chamge UI is update
+//delegate state to object viewModel which one has logic to menage state. It have to update state activity and we can use it in UI.If state in ViewModel is chamge UI is update
                 val state by viewModel.state.collectAsState()
-                //LaunchedEffect - JP Compose function inside function is notification about state is errorMessage. Effect will be call if stateMessage will be change.
+//LaunchedEffect - JP Compose function inside function is notification about state is errorMessage. Effect will be call if stateMessage will be change.
                 LaunchedEffect(key1 = state.errorMessage) {
                     state.errorMessage?.let {message ->
                         Toast.makeText(
@@ -91,15 +91,17 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-//                LaunchedEffect(key1 = state.isConnected) {
-//                    if(state.isConnected) {
-//                        Toast.makeText(
-//                            applicationContext,
-//                            "You are connected!:",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                }
+
+
+                LaunchedEffect(key1 = state.isConnected) {
+                    if(state.isConnected) {
+                        Toast.makeText(
+                            applicationContext,
+                            "You are connected!: ${state.dataFromBluetooth}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
 
                 Surface(
                     color = MaterialTheme.colorScheme.background
@@ -112,7 +114,9 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 CircularProgressIndicator()
                                 Text(text = "Connecting...")
+
                             }
+
                         }
                         state.isConnected -> {
                             Column (
@@ -124,13 +128,14 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                         else -> {
-                            //DeviceScreen - function which one render screen where are bluetooth devices. Function have 4 arguments.
+//DeviceScreen - function which one render screen where are bluetooth devices. Function have 5 arguments.
                             DeviceScreen(
                                 state = state,
-                                //References to functions from viewModel
+//references to functions from viewModel
                                 onStartScan = viewModel::startScan,
                                 onStopScan = viewModel::stopScan,
                                 onDeviceClick = viewModel::connectToDevice
+                               // onStartServer = viewModel::waitForIncomingConnections
                             )
                         }
                     }

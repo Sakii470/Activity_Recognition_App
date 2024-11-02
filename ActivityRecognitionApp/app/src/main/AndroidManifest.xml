@@ -27,11 +27,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ActivityRecognitionApp"
         tools:targetApi="34" >
-        <activity
-            android:name=".presentation.components.SecondActivity"
-            android:exported="false"
-            android:label="@string/title_activity_second"
-            android:theme="@style/Theme.ActivityRecognitionApp" />
+
         <activity
             android:name=".BluetoothApp"
             android:exported="false" />

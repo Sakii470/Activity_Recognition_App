@@ -1,6 +1,4 @@
-package com.example.activityrecognitionapp.domain.chat
-
-import android.bluetooth.BluetoothAdapter
+package com.example.activityrecognitionapp.domain
 
 /**
  * Represents a Bluetooth device with relevant details such as its name, address,

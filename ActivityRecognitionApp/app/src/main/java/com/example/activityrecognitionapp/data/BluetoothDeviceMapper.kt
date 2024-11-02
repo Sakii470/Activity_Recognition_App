@@ -1,8 +1,8 @@
-package com.example.activityrecognitionapp.data.chat
+package com.example.activityrecognitionapp.data
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import com.example.activityrecognitionapp.domain.chat.BluetoothDeviceDomain
+import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 
 /**
  * Extension functions for the Android BluetoothDevice class to convert
@@ -19,7 +19,7 @@ fun BluetoothDevice.toBluetoothDeviceDomain(rssi: Int?): BluetoothDeviceDomain {
     )
 }
 @SuppressLint("MissingPermission")
-fun BluetoothDevice.toBluetoothDeviceDomain(): BluetoothDeviceDomain{
+fun BluetoothDevice.toBluetoothDeviceDomain(): BluetoothDeviceDomain {
     return BluetoothDeviceDomain(
         name = name,
         address = address,

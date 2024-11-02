@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.data.chat
+package com.example.activityrecognitionapp.data
 
 /**
  * AndroidBluetoothController is a class responsible for managing Bluetooth Low Energy (BLE) operations
@@ -43,10 +43,10 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.activityrecognitionapp.domain.chat.BluetoothController
+import com.example.activityrecognitionapp.domain.BluetoothController
 
-import com.example.activityrecognitionapp.domain.chat.BluetoothDeviceDomain
-import com.example.activityrecognitionapp.domain.chat.ConnectionResult
+import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
+import com.example.activityrecognitionapp.domain.ConnectionResult
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -89,9 +89,9 @@ class AndroidBluetoothController(
     override val scannedDevices: StateFlow<List<BluetoothDeviceDomain>>
         get() = _scannedDevices.asStateFlow()
 
-    private val _pairedDevices = MutableStateFlow<List<BluetoothDeviceDomain>>(emptyList())
-    override val pairedDevices: StateFlow<List<BluetoothDeviceDomain>>
-        get() = _pairedDevices.asStateFlow()
+//    private val _pairedDevices = MutableStateFlow<List<BluetoothDeviceDomain>>(emptyList())
+//    override val pairedDevices: StateFlow<List<BluetoothDeviceDomain>>
+//        get() = _pairedDevices.asStateFlow()
 
     private val _errors = MutableSharedFlow<String>()
     override val errors: SharedFlow<String>
@@ -140,7 +140,6 @@ class AndroidBluetoothController(
     }
 
     init {
-        updatePairedDevices()
         context.registerReceiver( // Register the bluetoothStateReceiver to listen for Bluetooth connection state changes.
             bluetoothStateReceiver,
             IntentFilter().apply {
@@ -156,7 +155,6 @@ class AndroidBluetoothController(
         if (!hasPermission(Manifest.permission.BLUETOOTH_SCAN)) {
             return
         }
-        updatePairedDevices()
         // Register a receiver to listen for discovered Bluetooth devices.
         context.registerReceiver(
             foundDeviceReceiver,
@@ -317,17 +315,17 @@ class AndroidBluetoothController(
     }
 
     // updatePairedDevices - Retrieves and updates the list of currently paired Bluetooth devices
-    private fun updatePairedDevices() {
-        if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
-            return
-        }
-        bluetoothAdapter
-            ?.bondedDevices
-            ?.map { it.toBluetoothDeviceDomain() }
-            ?.also { devices ->
-                _pairedDevices.update { devices }
-            }
-    }
+//    private fun updatePairedDevices() {
+//        if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
+//            return
+//        }
+//        bluetoothAdapter
+//            ?.bondedDevices
+//            ?.map { it.toBluetoothDeviceDomain() }
+//            ?.also { devices ->
+//                _pairedDevices.update { devices }
+//            }
+//    }
 
     // updateScannedDevices - Clears the current list of scanned devices and restarts the discovery process.
     private fun updateScannedDevices() {

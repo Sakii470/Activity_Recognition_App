@@ -3,8 +3,8 @@ package com.example.activityrecognitionapp.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.activityrecognitionapp.domain.chat.BluetoothController
-import com.example.activityrecognitionapp.domain.chat.BluetoothDeviceDomain
+import com.example.activityrecognitionapp.domain.BluetoothController
+import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
-import com.example.activityrecognitionapp.domain.chat.ConnectionResult
+import com.example.activityrecognitionapp.domain.ConnectionResult
 
 // ViewModel managed by Hilt responsible for Bluetooth application logic, including connections, scanning, and managing UI state.
 @HiltViewModel
@@ -34,15 +34,15 @@ class BluetoothViewModel @Inject constructor(
     private val _state = MutableStateFlow(BluetoothUiState())
 
 
-    //combine 3 StateFlow into 1 StateFlow
+    //combine 2 StateFlow into 1 StateFlow
     val state = combine(
         bluetoothController.scannedDevices,
-        bluetoothController.pairedDevices,
+
         _state
-    ) { scannedDevices, pairedDevices, state ->
+    ) { scannedDevices, state ->
         state.copy(
             scannedDevices = scannedDevices,
-            pairedDevices = pairedDevices
+
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
 
@@ -114,11 +114,6 @@ class BluetoothViewModel @Inject constructor(
             }
             .launchIn(viewModelScope)
     }
-
-//    override fun onCleared() {
-//        super.onCleared()
-//        bluetoothController.release()
-//    }
 }
 
 

@@ -1,8 +1,8 @@
 package com.example.activityrecognitionapp.di
 
 import android.content.Context
-import com.example.activityrecognitionapp.data.chat.AndroidBluetoothController
-import com.example.activityrecognitionapp.domain.chat.BluetoothController
+import com.example.activityrecognitionapp.data.AndroidBluetoothController
+import com.example.activityrecognitionapp.domain.BluetoothController
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

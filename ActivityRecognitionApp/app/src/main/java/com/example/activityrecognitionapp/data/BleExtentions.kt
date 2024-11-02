@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.data.chat
+package com.example.activityrecognitionapp.data
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic

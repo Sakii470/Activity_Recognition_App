@@ -24,12 +24,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.activityrecognitionapp.presentation.components.DeviceScreen
-import com.plcoding.bluetoothchat.ui.theme.BluetoothChatTheme
+import com.example.activityrecognitionapp.screens.DeviceScreen
+import com.example.activityrecognitionapp.ui.theme.ActivityRecognitionAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-
 class MainActivity : ComponentActivity() {
 //create bluetoothManager - software manadzer bluetooth
 //crete bluetoothAdapter - bluetooth device module
@@ -76,7 +75,7 @@ class MainActivity : ComponentActivity() {
         }
         //Set activity content, create instance BluetoothViewModel use hiltViewModel it menage ViewModel lifecycle
         setContent {
-            BluetoothChatTheme {
+            ActivityRecognitionAppTheme {
                 val viewModel = hiltViewModel<BluetoothViewModel>()
                 //delegate state to object viewModel which one has logic to menage state. It have to update state activity and we can use it in UI.If state in ViewModel is chamge UI is update
                 val state by viewModel.state.collectAsState()
@@ -90,16 +89,6 @@ class MainActivity : ComponentActivity() {
                         ).show()
                     }
                 }
-
-//                LaunchedEffect(key1 = state.isConnected) {
-//                    if(state.isConnected) {
-//                        Toast.makeText(
-//                            applicationContext,
-//                            "You are connected!:",
-//                            Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                }
 
                 Surface(
                     color = MaterialTheme.colorScheme.background

@@ -1,3 +1,4 @@
+import java.util.Properties
 
 
 plugins {
@@ -12,6 +13,15 @@ android {
     namespace = "com.example.activityrecognitionapp"
     compileSdk = 34
 
+    buildFeatures {
+        buildConfig = true
+    }
+
+    val properties = Properties()
+    properties.load(File(rootDir, "local.properties").inputStream())
+    val key: String = properties.getProperty("supabaseKey")
+    val url: String = properties.getProperty("supabaseUrl")
+
     defaultConfig {
         applicationId = "com.example.activityrecognitionapp"
         minSdk = 24
@@ -23,6 +33,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String","supabaseKey","\"$key\"")
+        buildConfigField("String","supabaseUrl","\"$url\"")
     }
 
     buildTypes {
@@ -89,6 +102,14 @@ dependencies {
     // Debugging tools
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+
+    //Supabase
+    implementation(libs.gotrue.kt)
+    implementation(libs.ktor.client.cio)
+
+    //DataStore
+    implementation(libs.androidx.datastore.core.android)
+    implementation (libs.datastore.preferences)
 }
 
 

@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.data
+package com.example.activityrecognitionapp.data.bluetooth
 
 /**
  * AndroidBluetoothController is a class responsible for managing Bluetooth Low Energy (BLE) operations
@@ -205,7 +205,7 @@ class AndroidBluetoothController(
             if (characteristic == null) { // If the characteristic is not found, launch a coroutine to send an error message through the connection result channel.
                 coroutineScope.launch {
                     connectionResultChannel.trySend(
-                        ConnectionResult.ConnectionEstabilished("Can't find characteristic. Choose another device")
+                        ConnectionResult.ConnectionEstablished("Can't find characteristic. Choose another device")
                     )
                 }
                 return
@@ -224,7 +224,7 @@ class AndroidBluetoothController(
                         val datafromBluetooth = value
                         coroutineScope.launch {// Launch a coroutine to send the decoded data through the connection result channel.
                             connectionResultChannel.trySend(
-                                ConnectionResult.ConnectionEstabilished(
+                                ConnectionResult.ConnectionEstablished(
                                     datafromBluetooth.decodeToString()
                                 )
                             )

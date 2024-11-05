@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.data
+package com.example.activityrecognitionapp.data.bluetooth
 
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver

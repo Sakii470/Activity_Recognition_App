@@ -1,7 +1,7 @@
 package com.example.activityrecognitionapp.di
 
 import android.content.Context
-import com.example.activityrecognitionapp.data.AndroidBluetoothController
+import com.example.activityrecognitionapp.data.bluetooth.AndroidBluetoothController
 import com.example.activityrecognitionapp.domain.BluetoothController
 import dagger.Module
 import dagger.Provides
@@ -19,4 +19,5 @@ object AppModule {
     fun provideBluetoothController(@ApplicationContext context: Context): BluetoothController {
         return AndroidBluetoothController(context)
     }
+
 }

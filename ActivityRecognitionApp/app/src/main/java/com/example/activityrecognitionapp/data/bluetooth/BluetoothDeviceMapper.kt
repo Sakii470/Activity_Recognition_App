@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.data
+package com.example.activityrecognitionapp.data.bluetooth
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice

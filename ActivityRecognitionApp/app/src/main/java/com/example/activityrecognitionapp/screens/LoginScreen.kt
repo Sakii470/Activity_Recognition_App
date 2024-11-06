@@ -36,6 +36,8 @@ import com.example.activityrecognitionapp.viewmodels.SupabaseAuthViewModel
 fun LoginScreen(
     navController: NavController,
     viewModel: SupabaseAuthViewModel = hiltViewModel(),
+
+
 ) {
 
     // Collect the UI state from the ViewModel
@@ -45,7 +47,7 @@ fun LoginScreen(
     // Observe userState to navigate to the main screen after successful login
     LaunchedEffect(userState) {
         if (userState is UserState.Success) {
-            navController.navigate("bluetooth") {
+            navController.navigate("mainScreen") {
                 popUpTo("login") { inclusive = true }
             }
             viewModel.resetUserState()

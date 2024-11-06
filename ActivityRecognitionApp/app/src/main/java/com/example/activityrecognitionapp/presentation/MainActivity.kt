@@ -34,15 +34,9 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    //create bluetoothManager - software manadzer bluetooth
-//crete bluetoothAdapter - bluetooth device module
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-
-
 
         setContent {
             ActivityRecognitionAppTheme {

@@ -11,14 +11,19 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+
 import androidx.compose.foundation.layout.Column
+
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -71,38 +77,48 @@ import com.example.activityrecognitionapp.domain.BluetoothDevice
 
 
 @Composable
-fun NormalTextComponent(value: String) {
-    Text(
-        text = value,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 40.dp),
-        style = TextStyle(
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Normal,
-            fontStyle = FontStyle.Normal,
-
-            ),
-        textAlign = TextAlign.Center
-    )
-}
-
-@Composable
-fun HeadingTextComponent(value: String, modifier: Modifier) {
+fun NormalTextComponent(
+    value: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = TextStyle(
+        fontSize = 24.sp,
+        fontWeight = FontWeight.Normal,
+        fontStyle = FontStyle.Normal,
+        color = MaterialTheme.colorScheme.onBackground
+    ),
+    textAlign: TextAlign = TextAlign.Center
+) {
     Text(
         text = value,
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(),
-        style = TextStyle(
-            fontSize = 30.sp,
-            fontWeight = FontWeight.Bold,
-            fontStyle = FontStyle.Normal,
-
-            ),
-        textAlign = TextAlign.Center
+            .heightIn(min = 40.dp),
+        style = style,
+        textAlign = textAlign
     )
 }
+
+@Composable
+fun HeadingTextComponent (value: String,
+modifier: Modifier = Modifier,
+style: TextStyle = TextStyle(
+fontSize = 30.sp,
+fontWeight = FontWeight.Normal,
+fontStyle = FontStyle.Normal,
+color = MaterialTheme.colorScheme.onBackground
+),
+textAlign: TextAlign = TextAlign.Center
+) {
+    Text(
+        text = value,
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 40.dp),
+        style = style,
+        textAlign = textAlign
+    )
+}
+
 
 @Composable
 fun getTextFieldColors() = TextFieldDefaults.colors(
@@ -115,7 +131,7 @@ fun getTextFieldColors() = TextFieldDefaults.colors(
     focusedIndicatorColor = Color.Transparent,
 //    unfocusedLeadingIconColor = Primary,
     focusedLeadingIconColor = LighterPrimary,
-    focusedTextColor = MaterialTheme.colorScheme.primary,
+    //focusedTextColor = MaterialTheme.colorScheme.onBackground,
 //    unfocusedTextColor = Primary
 )
 
@@ -328,14 +344,6 @@ fun BluetoothDeviceList(
     LazyColumn(
         modifier = modifier
     ) {
-        item {
-            HeadingTextComponent(
-                value = stringResource(id = R.string.scanned_devices),
-//                fontWeight = FontWeight.Bold,
-//                fontSize = 24.sp,
-                modifier = Modifier.padding(25.dp)
-            )
-        }
 
         items(scannedDevices) { device ->
             Card(
@@ -344,17 +352,57 @@ fun BluetoothDeviceList(
                     .padding(8.dp)
                     .clickable { onClick(device) },
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                )
 
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(text = "${device.name ?: "(No name)"} - RSSI: ${device.signalStrength}" )
+                    Text(
+                        text = "${device.name ?: "(No name)"} - RSSI: ${device.signalStrength}",
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
 
                 }
             }
         }
     }
 }
+
+
+    @Composable
+    fun NotificationMessage(
+        message: String,
+        //iconId: Int
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp)
+            ) {
+//                Icon(
+//                    painter = painterResource(id = iconId),
+//                    contentDescription = null,
+//                    tint = MaterialTheme.colorScheme.primary,
+//                    modifier = Modifier.size(24.dp)
+//                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+        }
+    }
+
+
 
 
 

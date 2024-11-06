@@ -15,4 +15,6 @@
     <string name="scanned_devices">Scanned Devices</string>
     <string name="start_scan">"Start Scan"</string>
     <string name="stop_scan">Stop Scan</string>
+    <string name="devices">Devices</string>
+    <string name="add_devices">Add device</string>
 </resources>

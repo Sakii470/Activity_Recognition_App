@@ -48,14 +48,12 @@ private val DarkColors = darkColorScheme(
     onPrimary = Color.Black,
     secondary = Color(0xFFFFF3E0),
     onSecondary = Color.Black,
-    tertiary = Color(0xFF111111),
-    onTertiary = Color.Gray,
-    tertiaryContainer = Color(0xFF111111),
+    tertiary = Color(0xF4444444),
+    onTertiary = Color.White,
+    tertiaryContainer = Color(0xFF222222),
     onTertiaryContainer = Color.Gray,
     surface = Color(0xFF000000),
     onSurface = Color.White,
-
-
 
     background = Color(0xFF000000), // Kolor tła dla trybu ciemnego
     onBackground = Color.White,

@@ -4,12 +4,10 @@ package com.example.activityrecognitionapp.screens
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -18,32 +16,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.activityrecognitionapp.presentation.BluetoothEvent
+import com.example.activityrecognitionapp.presentation.BluetoothUiState
 import com.example.activityrecognitionapp.presentation.BluetoothViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
 fun BluetoothScreen(
-    navController: NavController,
-    viewModel: BluetoothViewModel = hiltViewModel(),
-    onBluetoothEnableFailed: () -> Unit = {}
+    //viewModel: BluetoothViewModel= hiltViewModel(),
+    viewModel:BluetoothViewModel,
+    onBluetoothEnableFailed: () -> Unit = {},
 ) {
-
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
+    var showConnectionMessage by remember { mutableStateOf(false) }
 
     val enableBluetoothLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
-            viewModel.onBluetoothEnabled()
+//viewModel.onBluetoothEnabled()
         } else {
             onBluetoothEnableFailed()
         }
@@ -122,7 +124,7 @@ fun PermissionsHandler(
             onPermissionsGranted()
         }
         if (isBluetoothEnabled) {
-
+            Unit
         } else {
             onPermissionsDenied()
         }

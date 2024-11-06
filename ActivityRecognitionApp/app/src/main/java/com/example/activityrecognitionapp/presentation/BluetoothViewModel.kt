@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import android.bluetooth.BluetoothAdapter
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
@@ -27,6 +28,7 @@ import com.example.activityrecognitionapp.domain.ConnectionResult
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 
@@ -59,6 +61,7 @@ class BluetoothViewModel @Inject constructor(
     //Is used to active refresh UI if something happen.
     private val _state = MutableStateFlow(BluetoothUiState())
 
+
 //    val isBluetoothEnabled: Boolean
 //        get() = bluetoothAdapter?.isEnabled == true
 
@@ -72,14 +75,16 @@ class BluetoothViewModel @Inject constructor(
     //combine 2 StateFlow into 1 StateFlow
     val state = combine(
         bluetoothController.scannedDevices,
-
         _state
     ) { scannedDevices, state ->
         state.copy(
             scannedDevices = scannedDevices,
 
+
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
+
+
 
     //Init is responsible for subscribe stateFlows if any stateFlow will be change this block update _stateFlow
     init {
@@ -123,11 +128,12 @@ class BluetoothViewModel @Inject constructor(
         return onEach { result ->
             when(result) {
                 is ConnectionResult.ConnectionEstablished -> {
+                    Log.d("sdadas","Updating dataFromBluetooth to: ${result.dataFromBluetooth}")
                     _state.update { it.copy(
                         isConnected = true,
                         isConnecting = false,
                         errorMessage = null,
-                        dataFromBluetooth = result.dataFromBluetooth
+                        dataFromBluetooth = result.dataFromBluetooth,
 
                     ) }
                 }

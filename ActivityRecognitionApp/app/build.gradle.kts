@@ -110,6 +110,9 @@ dependencies {
     //DataStore
     implementation(libs.androidx.datastore.core.android)
     implementation (libs.datastore.preferences)
+
+    //Animation
+    implementation (libs.accompanist.navigation.animation)
 }
 
 

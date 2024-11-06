@@ -1,5 +1,6 @@
 [versions]
 # Android Gradle Plugin
+accompanistNavigationAnimation = "0.36.0"
 agp = "8.3.0"
 
 # AndroidX and Jetpack Compose
@@ -49,6 +50,7 @@ jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "k
 
 [libraries]
 # Core AndroidX Libraries
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

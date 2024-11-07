@@ -1,12 +1,12 @@
-package com.example.activityrecognitionapp.viewmodels
+package com.example.activityrecognitionapp.presentation.viewmodels
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.activityrecognitionapp.data.model.LoginUiState
-import com.example.activityrecognitionapp.data.model.UserState
+import com.example.activityrecognitionapp.presentation.states.LoginUiState
+import com.example.activityrecognitionapp.presentation.states.UserState
 import com.example.activityrecognitionapp.data.network.SupaBaseClient.client
-import com.example.activityrecognitionapp.utils.TokenRepository
+import com.example.activityrecognitionapp.data.repository.TokenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.gotrue.gotrue
 import io.github.jan.supabase.gotrue.providers.builtin.Email

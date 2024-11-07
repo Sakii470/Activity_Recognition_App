@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.ui.theme
+package com.example.activityrecognitionapp.presentation.theme
 
 import android.app.Activity
 import android.os.Build
@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.compose.material3.Typography
 import androidx.compose.ui.res.colorResource
-import com.example.activityrecognitionapp.ui.theme.Primary
+import com.example.activityrecognitionapp.presentation.theme.Primary
 import com.example.loginui.ui.theme.Typography
 
 

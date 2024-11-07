@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.presentation
+package com.example.activityrecognitionapp
 
 
 import android.Manifest
@@ -25,8 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.example.activityrecognitionapp.AppNavigation
-import com.example.activityrecognitionapp.screens.DeviceScreen
-import com.example.activityrecognitionapp.ui.theme.ActivityRecognitionAppTheme
+import com.example.activityrecognitionapp.presentation.screens.DeviceScreen
+import com.example.activityrecognitionapp.presentation.theme.ActivityRecognitionAppTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -45,7 +45,6 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     AppNavigation()
-
                 }
             }
         }

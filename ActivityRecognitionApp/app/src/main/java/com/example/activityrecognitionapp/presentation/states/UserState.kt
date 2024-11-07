@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.data.model
+package com.example.activityrecognitionapp.presentation.states
 
 sealed class UserState {
     object Idle : UserState()

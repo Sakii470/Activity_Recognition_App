@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.screens
+package com.example.activityrecognitionapp.presentation.screens
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,10 +24,10 @@ import com.example.activityrecognitionapp.components.HeadingTextComponent
 import com.example.activityrecognitionapp.components.MyTextFieldComponent
 import com.example.activityrecognitionapp.components.NormalTextComponent
 import com.example.activityrecognitionapp.components.PasswordTextFieldComponent
-import com.example.activityrecognitionapp.data.model.LoginUiState
-import com.example.activityrecognitionapp.data.model.UserState
-import com.example.activityrecognitionapp.ui.theme.Primary
-import com.example.activityrecognitionapp.viewmodels.SupabaseAuthViewModel
+import com.example.activityrecognitionapp.presentation.states.LoginUiState
+import com.example.activityrecognitionapp.presentation.states.UserState
+import com.example.activityrecognitionapp.presentation.theme.Primary
+import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthViewModel
 
 @Composable
 fun SignUpScreen(

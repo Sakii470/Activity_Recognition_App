@@ -1,6 +1,6 @@
 
 
-package com.example.activityrecognitionapp.screens
+package com.example.activityrecognitionapp.presentation.screens
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
@@ -21,19 +21,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import com.example.activityrecognitionapp.presentation.BluetoothEvent
-import com.example.activityrecognitionapp.presentation.BluetoothUiState
-import com.example.activityrecognitionapp.presentation.BluetoothViewModel
-import kotlinx.coroutines.delay
+import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
+import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothEvent
+import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothViewModel
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
 fun BluetoothScreen(
     //viewModel: BluetoothViewModel= hiltViewModel(),
-    viewModel:BluetoothViewModel,
+    viewModel: BluetoothViewModel,
     onBluetoothEnableFailed: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsState()
@@ -77,9 +74,11 @@ fun BluetoothScreen(
         content = { contentPadding ->
             DeviceScreen(
                 state = state,
+                connectedDevice = state.connectedDevice,
                 onStartScan = viewModel::startScan,
                 onStopScan = viewModel::stopScan,
                 onDeviceClick = viewModel::connectToDevice,
+                onDisconnect = viewModel::disconnectFromDevice,
                 modifier = Modifier.padding(contentPadding)
             )
         }

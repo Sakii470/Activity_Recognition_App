@@ -1,9 +1,8 @@
-package com.example.activityrecognitionapp.presentation
+package com.example.activityrecognitionapp.presentation.viewmodels
 
 
 import android.app.Application
 import android.bluetooth.BluetoothManager
-import androidx.activity.viewModels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activityrecognitionapp.domain.BluetoothController
@@ -19,22 +18,21 @@ import android.bluetooth.BluetoothAdapter
 
 import android.content.Context
 import android.util.Log
+import com.example.activityrecognitionapp.presentation.states.BluetoothUiState
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import com.example.activityrecognitionapp.domain.ConnectionResult
+import com.example.activityrecognitionapp.presentation.states.HomeUiState
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 
-import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
-
 
 
 // ViewModel managed by Hilt responsible for Bluetooth application logic, including connections, scanning, and managing UI state.
@@ -43,7 +41,7 @@ class BluetoothViewModel @Inject constructor(
     //Reference to instance BluetoothController
     private val bluetoothController: BluetoothController,
     private val app: Application
-): ViewModel() {
+) : ViewModel() {
 
 
     // Bluetooth adapter
@@ -61,9 +59,9 @@ class BluetoothViewModel @Inject constructor(
     //Is used to active refresh UI if something happen.
     private val _state = MutableStateFlow(BluetoothUiState())
 
+    private val _homeUiState = MutableStateFlow(HomeUiState())
+    val homeUiState: StateFlow<HomeUiState> = _homeUiState
 
-//    val isBluetoothEnabled: Boolean
-//        get() = bluetoothAdapter?.isEnabled == true
 
     private val _errorMessages = MutableSharedFlow<String>()
     val errorMessages: SharedFlow<String> = _errorMessages.asSharedFlow()
@@ -80,10 +78,8 @@ class BluetoothViewModel @Inject constructor(
         state.copy(
             scannedDevices = scannedDevices,
 
-
-        )
+            )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
-
 
 
     //Init is responsible for subscribe stateFlows if any stateFlow will be change this block update _stateFlow
@@ -100,60 +96,83 @@ class BluetoothViewModel @Inject constructor(
     //Function responsible for create connection with bluetooth device.
     fun connectToDevice(device: BluetoothDeviceDomain) {
         _state.update { it.copy(isConnecting = true) }
-        deviceConnectionJob = bluetoothController //Start connection process by calling connectToDevice method from BluetoothController
-            .connectToDevice(device) // Result of connection is observed using listen()
-            .listen() // Subscribe to the outcome of the connection attempt.
-}
+        deviceConnectionJob =
+            bluetoothController //Start connection process by calling connectToDevice method from BluetoothController
+                .connectToDevice(device) // Result of connection is observed using listen()
+                .listen() // Subscribe to the outcome of the connection attempt.
+    }
 
     // Function responsible for disconnecting from the current Bluetooth device.
     fun disconnectFromDevice() {
         deviceConnectionJob?.cancel()
         bluetoothController.closeConnection()
-        _state.update { it.copy(
-            isConnecting = false,
-            isConnected = false
-        ) }
+        _state.update {
+            it.copy(
+                isConnecting = false,
+                isConnected = false
+            )
+        }
     }
 
-// Function to start scanning for Bluetooth devices.
+    // Function to start scanning for Bluetooth devices.
     fun startScan() {
         bluetoothController.startDiscovery()
     }
+
     // Function to stop scanning for Bluetooth devices.
     fun stopScan() {
         bluetoothController.stopDiscovery()
     }
+
     //Function subscribe outcomes binding with create bluetooth devices.
     private fun Flow<ConnectionResult>.listen(): Job {
         return onEach { result ->
-            when(result) {
+            when (result) {
                 is ConnectionResult.ConnectionEstablished -> {
-                    Log.d("sdadas","Updating dataFromBluetooth to: ${result.dataFromBluetooth}")
-                    _state.update { it.copy(
-                        isConnected = true,
-                        isConnecting = false,
-                        errorMessage = null,
-                        dataFromBluetooth = result.dataFromBluetooth,
+                    Log.d("sdadas", "Updating dataFromBluetooth to: ${result.dataFromBluetooth}")
+                    _state.update {
+                        it.copy(
+                            isConnected = true,
+                            isConnecting = false,
+                            errorMessage = null,
+                            dataFromBluetooth = result.dataFromBluetooth,
+                            connectedDevice = result.connectedDevice,
 
-                    ) }
+                            )
+                    }
+                    updateHomeUi(result.dataFromBluetooth)
                 }
+
                 is ConnectionResult.Error -> {
-                    _state.update { it.copy(
-                        isConnected = false,
-                        isConnecting = false,
-                        errorMessage = result.message
-                    ) }
+                    _state.update {
+                        it.copy(
+                            isConnected = false,
+                            isConnecting = false,
+                            errorMessage = result.message
+                        )
+                    }
                 }
             }
         }
             .catch { throwable ->
                 bluetoothController.closeConnection()
-                _state.update { it.copy(
-                    isConnected = false,
-                    isConnecting = false,
-                ) }
+                _state.update {
+                    it.copy(
+                        isConnected = false,
+                        isConnecting = false,
+                    )
+                }
             }
             .launchIn(viewModelScope)
+    }
+
+    fun updateHomeUi(kindActivity: String) {
+        _homeUiState.value = _homeUiState.value.copy(
+            stand = _homeUiState.value.stand + if (kindActivity.startsWith("stand")) 1 else 0,
+            walk = _homeUiState.value.walk + if (kindActivity.startsWith("walk")) 1 else 0,
+            run = _homeUiState.value.walk + if (kindActivity.startsWith("run")) 1 else 0,
+            total = _homeUiState.value.stand + _homeUiState.value.walk + _homeUiState.value.walk
+        )
     }
 
     fun onBluetoothEnabled() {
@@ -161,6 +180,7 @@ class BluetoothViewModel @Inject constructor(
             _state.update { it.copy(errorMessage = null) }
         }
     }
+
     fun isBluetoothEnabled(): Boolean {
         return bluetoothAdapter?.isEnabled == true
     }
@@ -173,7 +193,7 @@ class BluetoothViewModel @Inject constructor(
 
     fun clearErrorMessage() {
         viewModelScope.launch {
-            _state.update {it.copy(errorMessage=null)  }
+            _state.update { it.copy(errorMessage = null) }
         }
     }
 

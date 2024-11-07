@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.ui.theme
+package com.example.activityrecognitionapp.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

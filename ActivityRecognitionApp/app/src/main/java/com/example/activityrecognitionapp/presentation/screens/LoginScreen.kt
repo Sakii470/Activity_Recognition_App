@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.screens
+package com.example.activityrecognitionapp.presentation.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
@@ -27,10 +27,10 @@ import com.example.activityrecognitionapp.components.MyTextFieldComponent
 import com.example.activityrecognitionapp.components.NormalTextComponent
 import com.example.activityrecognitionapp.components.PasswordTextFieldComponent
 import com.example.activityrecognitionapp.components.UnderLinedTextComponent
-import com.example.activityrecognitionapp.data.model.LoginUiState
-import com.example.activityrecognitionapp.data.model.UserState
-import com.example.activityrecognitionapp.ui.theme.Primary
-import com.example.activityrecognitionapp.viewmodels.SupabaseAuthViewModel
+import com.example.activityrecognitionapp.presentation.states.LoginUiState
+import com.example.activityrecognitionapp.presentation.states.UserState
+import com.example.activityrecognitionapp.presentation.theme.Primary
+import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthViewModel
 
 @Composable
 fun LoginScreen(
@@ -38,7 +38,7 @@ fun LoginScreen(
     viewModel: SupabaseAuthViewModel = hiltViewModel(),
 
 
-) {
+    ) {
 
     // Collect the UI state from the ViewModel
     val uiLoginState by viewModel.uiLoginState.collectAsState()

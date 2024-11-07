@@ -8,7 +8,7 @@ package com.example.activityrecognitionapp.domain
 
  */
 sealed interface ConnectionResult {
-    data class ConnectionEstablished(val dataFromBluetooth: String) : ConnectionResult
+    data class ConnectionEstablished(val dataFromBluetooth: String, val connectedDevice: BluetoothDeviceDomain?) : ConnectionResult
 
     data class Error(val message: String) : ConnectionResult
 }

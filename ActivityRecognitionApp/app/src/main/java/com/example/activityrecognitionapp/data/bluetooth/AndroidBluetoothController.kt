@@ -205,7 +205,7 @@ class AndroidBluetoothController(
             if (characteristic == null) { // If the characteristic is not found, launch a coroutine to send an error message through the connection result channel.
                 coroutineScope.launch {
                     connectionResultChannel.trySend(
-                        ConnectionResult.ConnectionEstablished("Can't find characteristic. Choose another device")
+                        ConnectionResult.ConnectionEstablished("Can't find characteristic. Choose another device",null)
                     )
                 }
                 return
@@ -223,9 +223,11 @@ class AndroidBluetoothController(
                     uuidCharacteristic -> {
                         val datafromBluetooth = value
                         coroutineScope.launch {// Launch a coroutine to send the decoded data through the connection result channel.
+                            val connectedDevice = gatt.device
                             connectionResultChannel.trySend(
                                 ConnectionResult.ConnectionEstablished(
-                                    datafromBluetooth.decodeToString()
+                                    datafromBluetooth.decodeToString(),
+                                    connectedDevice.toBluetoothDeviceDomain()
                                 )
                             )
                         }

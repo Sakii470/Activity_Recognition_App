@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.utils
+package com.example.activityrecognitionapp.data.repository
 
 import android.content.Context
 import androidx.datastore.core.DataStore

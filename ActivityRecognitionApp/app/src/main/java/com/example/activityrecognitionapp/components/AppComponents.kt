@@ -7,6 +7,10 @@ package com.example.activityrecognitionapp.components
  * a cohesive theme throughout the app.
  */
 
+import android.graphics.Rect
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,14 +22,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
@@ -47,10 +54,16 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
@@ -67,13 +80,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.activityrecognitionapp.ui.theme.LighterPrimary
-import com.example.activityrecognitionapp.ui.theme.Primary
-import com.example.activityrecognitionapp.ui.theme.Secondary
+import com.example.activityrecognitionapp.presentation.theme.LighterPrimary
+import com.example.activityrecognitionapp.presentation.theme.Primary
+import com.example.activityrecognitionapp.presentation.theme.Secondary
 import com.example.activityrecognitionapp.R
 import com.example.activityrecognitionapp.domain.BluetoothDevice
+import java.nio.file.Path
+import kotlin.io.path.Path
+import kotlin.io.path.moveTo
 
 
 @Composable
@@ -403,6 +420,89 @@ fun BluetoothDeviceList(
     }
 
 
+@Composable
+fun ActivityBarChart(
+    standingPercentage: Float,
+    walkingPercentage: Float,
+    runningPercentage: Float,
+    modifier: Modifier = Modifier,
+    height: Dp = 30.dp,
+    cornerRadius: Dp = 8.dp
+) {
+    // Normalizacja procentów, aby suma nie przekraczała 1.0
+    val total = standingPercentage + walkingPercentage + runningPercentage
+    val normalizedStanding = if (total > 1f) standingPercentage / total else standingPercentage
+    val normalizedWalking = if (total > 1f) walkingPercentage / total else walkingPercentage
+    val normalizedRunning = if (total > 1f) runningPercentage / total else runningPercentage
 
+    // Obsługa przypadku, gdy suma procentów jest 0
+    val finalStanding = if (total == 0f) 0f else normalizedStanding
+    val finalWalking = if (total == 0f) 0f else normalizedWalking
+    val finalRunning = if (total == 0f) 0f else normalizedRunning
 
+    // Animowane wartości procentowe
+    val animatedStanding by animateFloatAsState(targetValue = finalStanding, animationSpec = tween(1000))
+    val animatedWalking by animateFloatAsState(targetValue = finalWalking, animationSpec = tween(1000))
+    val animatedRunning by animateFloatAsState(targetValue = finalRunning, animationSpec = tween(1000))
 
+    Canvas(
+        modifier = modifier
+            .height(height)
+            .fillMaxWidth()
+    ) {
+        val barHeight = size.height
+        val barWidth = size.width
+        val cornerRadiusPx = cornerRadius.toPx()
+
+        var startX = 0f
+
+        // Lista segmentów do rysowania
+        val segments = listOf(
+            Pair(animatedStanding, Brush.horizontalGradient(listOf(Color(0xFF1E88E5), Color(0xFF1976D2)))), // Niebieski
+            Pair(animatedWalking, Brush.horizontalGradient(listOf(Color(0xFF43A047), Color(0xFF388E3C)))),  // Zielony
+            Pair(animatedRunning, Brush.horizontalGradient(listOf(Color(0xFFE53935), Color(0xFFD32F2F))) )    // Czerwony
+        )
+
+        segments.forEachIndexed { index, segment ->
+            val (percentage, brush) = segment
+            if (percentage <= 0f) return@forEachIndexed // Pomijanie segmentów o 0%
+
+            val segmentWidth = barWidth * percentage
+
+            val rect =
+                androidx.compose.ui.geometry.Rect(startX, 0f, startX + segmentWidth, barHeight)
+
+            val path = androidx.compose.ui.graphics.Path().apply {
+                when (index) {
+                    0 -> {
+                        // Pierwszy segment - zaokrąglone lewe rogi
+                        addRoundRect(
+                            RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
+                        )
+                    }
+                    segments.lastIndex -> {
+                        // Ostatni segment - zaokrąglone prawe rogi
+                        addRoundRect(
+                            RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
+                        )
+                    }
+                    else -> {
+                        // Środkowe segmenty - płaskie rogi
+                        addRoundRect(
+                            RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
+                        )
+                    }
+                }
+            }
+
+            // Rysowanie segmentu
+            drawPath(
+                path = path,
+                brush = brush,
+               // style = Fill
+            )
+
+            startX += segmentWidth
+        }
+    }
+}

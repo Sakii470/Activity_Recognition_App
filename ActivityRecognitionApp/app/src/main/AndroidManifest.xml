@@ -33,7 +33,7 @@
             android:name=".ActivityRecognitionApp"
             android:exported="false" />
         <activity
-            android:name=".presentation.MainActivity"
+            android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.ActivityRecognitionApp" >

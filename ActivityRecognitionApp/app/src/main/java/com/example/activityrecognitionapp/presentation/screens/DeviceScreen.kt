@@ -1,10 +1,9 @@
-package com.example.activityrecognitionapp.screens
+package com.example.activityrecognitionapp.presentation.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -14,57 +13,55 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.activityrecognitionapp.BottomNavigationBar
 import com.example.activityrecognitionapp.domain.BluetoothDevice
-import com.example.activityrecognitionapp.presentation.BluetoothUiState
+import com.example.activityrecognitionapp.presentation.states.BluetoothUiState
 import com.example.activityrecognitionapp.R
 import com.example.activityrecognitionapp.components.BluetoothDeviceList
-import com.example.activityrecognitionapp.components.ButtonComponent
 import com.example.activityrecognitionapp.components.HeadingTextComponent
 import com.example.activityrecognitionapp.components.NormalTextComponent
-import com.example.activityrecognitionapp.presentation.BluetoothViewModel
+import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 
 
 @Composable
 fun DeviceScreen(
     state: BluetoothUiState,
+    connectedDevice: BluetoothDeviceDomain?,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
+    onDisconnect: () -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit,
     modifier: Modifier
-){
+) {
 
     DeviceScreenContent(
         state = state,
+        connectedDevice = connectedDevice,
         onStartScan = onStartScan,
         onStopScan = onStopScan,
+        onDisconnect = onDisconnect,
         onDeviceClick = onDeviceClick,
-        )
-    }
+    )
+}
 
 @Composable
 fun DeviceScreenContent(
     state: BluetoothUiState,
+    connectedDevice: BluetoothDeviceDomain?,
     onStartScan: () -> Unit,
     onStopScan: () -> Unit,
+    onDisconnect: () -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit
 ) {
     Column(
@@ -92,16 +89,50 @@ fun DeviceScreenContent(
 //            }
 //        }
 
-  //       Pokazanie statusu połączenia, jeśli aplikacja jest połączona
-        if (state.isConnected) {
-            Text(
-                text = " ${state.dataFromBluetooth}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp)
-            )
+        //       Pokazanie statusu połączenia, jeśli aplikacja jest połączona
+        if (state.isConnected && !state.isConnecting) {
+            if (connectedDevice != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally // Wyśrodkowanie horyzontalne
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Connected with ${connectedDevice.name}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .weight(1f),
+                            textAlign = TextAlign.Center
+
+                        )
+                        // Spacer(modifier = Modifier.weight(1f))
+                        IconButton(
+                            onClick = onDisconnect, // Wywołanie funkcji obsługi kliknięcia
+                            modifier = Modifier
+                                .padding(
+                                    0.dp,
+                                    5.dp,
+                                    10.dp,
+                                    0.dp
+                                ) // Dodatkowy padding, aby oddzielić od krawędzi
+                                .size(40.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.unlink),
+                                contentDescription = "Add Device",
+                                tint = MaterialTheme.colorScheme.primary,
+                            )
+                        }
+                    }
+                }
+            }
         }
+
+
 
 
         HeadingTextComponent(
@@ -110,15 +141,16 @@ fun DeviceScreenContent(
 //                fontSize = 24.sp,
             modifier = Modifier.padding(10.dp, 10.dp, 0.dp, 0.1.dp),
             textAlign = TextAlign.Left,
+        )
 
-            )
+
 
 
         NormalTextComponent(
-                value = stringResource(id = R.string.add_devices),
-        modifier = Modifier.padding(10.dp, 0.dp, 0.dp, 10.dp),
-        style = TextStyle(fontSize = 15.sp),
-        textAlign = TextAlign.Left
+            value = stringResource(id = R.string.add_devices),
+            modifier = Modifier.padding(10.dp, 0.dp, 0.dp, 10.dp),
+            style = TextStyle(fontSize = 15.sp),
+            textAlign = TextAlign.Left
         )
 
         Scaffold(
@@ -146,7 +178,12 @@ fun DeviceScreenContent(
                         IconButton(
                             onClick = onStartScan, // Wywołanie funkcji obsługi kliknięcia
                             modifier = Modifier
-                                .padding(0.dp,20.dp,0.dp,2.dp) // Dodatkowy padding, aby oddzielić od krawędzi
+                                .padding(
+                                    0.dp,
+                                    20.dp,
+                                    0.dp,
+                                    2.dp
+                                ) // Dodatkowy padding, aby oddzielić od krawędzi
                                 .size(60.dp)
                         ) {
                             Icon(
@@ -178,6 +215,12 @@ fun DeviceScreenContent(
         }
     }
 }
+
+
+
+
+
+
 
 
 

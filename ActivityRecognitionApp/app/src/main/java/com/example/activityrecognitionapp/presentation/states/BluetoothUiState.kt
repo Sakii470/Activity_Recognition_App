@@ -1,6 +1,7 @@
-package com.example.activityrecognitionapp.presentation
+package com.example.activityrecognitionapp.presentation.states
 
 import com.example.activityrecognitionapp.domain.BluetoothDevice
+import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 
 /**
  * Represents the UI state.
@@ -14,5 +15,9 @@ data class BluetoothUiState(
     val isConnected: Boolean = false,
     val isConnecting: Boolean = false,
     val errorMessage: String? = null,
-    val dataFromBluetooth: String? = "22"
+    val dataFromBluetooth: String? = null,
+    val connectedDevice: BluetoothDeviceDomain? = null
+
 )
+
+

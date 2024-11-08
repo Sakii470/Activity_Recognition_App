@@ -113,6 +113,10 @@ dependencies {
 
     //Animation
     implementation (libs.accompanist.navigation.animation)
+
+    //Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }
 
 

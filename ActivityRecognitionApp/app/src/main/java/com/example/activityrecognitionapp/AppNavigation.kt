@@ -39,7 +39,7 @@ fun AppNavigation(){
         modifier = Modifier.fillMaxSize(),
     ) {
         val navController = rememberNavController()
-        NavHost(navController = navController, startDestination = "mainScreen") {
+        NavHost(navController = navController, startDestination = "login") {
             composable("signUp") { SignUpScreen(navController) }
             composable("login") { LoginScreen(navController) }
             //composable("bluetooth") { BluetoothScreen() }

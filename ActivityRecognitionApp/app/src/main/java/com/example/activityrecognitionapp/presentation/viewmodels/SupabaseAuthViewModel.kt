@@ -3,9 +3,11 @@ package com.example.activityrecognitionapp.presentation.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.activityrecognitionapp.data.model.ActivityDataSupabase
 import com.example.activityrecognitionapp.presentation.states.LoginUiState
 import com.example.activityrecognitionapp.presentation.states.UserState
 import com.example.activityrecognitionapp.data.network.SupaBaseClient.client
+import com.example.activityrecognitionapp.data.repository.DataRepository
 import com.example.activityrecognitionapp.data.repository.TokenRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.jan.supabase.gotrue.gotrue
@@ -21,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SupabaseAuthViewModel @Inject constructor(
     application: Application,
-    private val tokenRepository: TokenRepository
+    private val tokenRepository: TokenRepository,
+
 ) : AndroidViewModel(application) {
 
     // Holds the UI state for login and sign-up screens.
@@ -162,4 +165,6 @@ class SupabaseAuthViewModel @Inject constructor(
     fun resetUserState() {
         _uiLoginState.update { it.copy(userState = UserState.Idle) }  // Ustaw stan na wartość domyślną, np. Idle
     }
+
+
 }

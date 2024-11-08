@@ -16,8 +16,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import android.bluetooth.BluetoothAdapter
 
+
 import android.content.Context
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
+import com.example.activityrecognitionapp.data.model.ActivityDataSupabase
+import com.example.activityrecognitionapp.data.network.SupaBaseClient
+import com.example.activityrecognitionapp.data.repository.DataRepository
 import com.example.activityrecognitionapp.presentation.states.BluetoothUiState
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -26,6 +31,9 @@ import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 import com.example.activityrecognitionapp.domain.ConnectionResult
 import com.example.activityrecognitionapp.presentation.states.HomeUiState
+import com.google.gson.Gson
+import io.github.jan.supabase.SupabaseClient
+import io.github.jan.supabase.gotrue.gotrue
 
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -33,6 +41,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 
 // ViewModel managed by Hilt responsible for Bluetooth application logic, including connections, scanning, and managing UI state.
@@ -40,9 +51,14 @@ import kotlinx.coroutines.launch
 class BluetoothViewModel @Inject constructor(
     //Reference to instance BluetoothController
     private val bluetoothController: BluetoothController,
-    private val app: Application
-) : ViewModel() {
+    private val app: Application,
+    private val repository: DataRepository
+) : AndroidViewModel(app) {
 
+
+    private fun getUserId(): String? {
+        return SupaBaseClient.client.gotrue.currentSessionOrNull()?.user?.id
+    }
 
     // Bluetooth adapter
     private val bluetoothAdapter: BluetoothAdapter? by lazy {
@@ -130,6 +146,8 @@ class BluetoothViewModel @Inject constructor(
             when (result) {
                 is ConnectionResult.ConnectionEstablished -> {
                     Log.d("sdadas", "Updating dataFromBluetooth to: ${result.dataFromBluetooth}")
+                    sendActivityData(getUserId(),result.dataFromBluetooth)
+
                     _state.update {
                         it.copy(
                             isConnected = true,
@@ -137,7 +155,6 @@ class BluetoothViewModel @Inject constructor(
                             errorMessage = null,
                             dataFromBluetooth = result.dataFromBluetooth,
                             connectedDevice = result.connectedDevice,
-
                             )
                     }
                     updateHomeUi(result.dataFromBluetooth)
@@ -202,6 +219,31 @@ class BluetoothViewModel @Inject constructor(
             _events.emit(BluetoothEvent.RequestEnableBluetooth)
         }
     }
+
+    fun sendActivityData(userId: String?,activityType: String){
+
+        // Skonwertuj timestamp na format daty i czasu
+        val timestampInMillis = System.currentTimeMillis()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        val timestampFormatted = dateFormat.format(Date(timestampInMillis))
+
+        val data = ActivityDataSupabase(
+            user_id = userId,
+            activity_type = activityType.substringBefore("="),
+            timestamp = timestampFormatted
+        )
+
+        repository.sendActivityData(data) { success ->
+            if (success) {
+                Log.d("xsaxsa","Dane aktywności wysłane pomyślnie")
+            } else {
+                Log.d("asdas","Błąd wysyłania danych aktywności: ")
+                Log.d("JSON Data", Gson().toJson(data))
+            }
+        }
+    }
+
+
 }
 
 sealed class BluetoothEvent {

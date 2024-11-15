@@ -34,13 +34,14 @@ fun SignUpScreen(
     navController: NavController,
     viewModel: SupabaseAuthViewModel = hiltViewModel(),
 ) {
-    // Collect the state from ViewModel to observe user input and authentication status
-    val uiLoginUiState by viewModel.uiLoginState.collectAsState()
+    // Collect the loginUiState from ViewModel to observe user input and authentication status
+    val loginUiState by viewModel.uiLoginState.collectAsState()
     // Display the sign-up screen content
     SignUpScreenContent(
-        state = uiLoginUiState,
+        loginUiState = loginUiState,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
+        onNameChange = viewModel::onNameChange,
         onSignUpClick = viewModel::signUp,
         onLoginClick = { navController.navigate("login") }
     )
@@ -49,9 +50,10 @@ fun SignUpScreen(
 
 @Composable
 fun SignUpScreenContent(
-    state: LoginUiState,
+    loginUiState: LoginUiState,
     onEmailChange: (String) -> Unit,
     onPasswordChange: (String) -> Unit,
+    onNameChange: (String) -> Unit,
     onSignUpClick: () -> Unit,
     onLoginClick: () -> Unit
 ) {
@@ -72,20 +74,28 @@ fun SignUpScreenContent(
             )
             // Email input field with a user icon
             MyTextFieldComponent(
+                labelValue = stringResource(id = R.string.name),
+                painterResource = painterResource(id = R.drawable.user),
+                value = loginUiState.userName,
+                onValueChange = onNameChange
+            )
+            
+            // Email input field with a user icon
+            MyTextFieldComponent(
                 labelValue = stringResource(id = R.string.email),
                 painterResource = painterResource(id = R.drawable.user),
-                value = state.userEmail,
+                value = loginUiState.userEmail,
                 onValueChange = onEmailChange
             )
             // Password input field with a lock icon
             PasswordTextFieldComponent(
                 labelValue = stringResource(id = R.string.password),
                 painterResource = painterResource(id = R.drawable.password_locker),
-                value = state.userPassword,
+                value = loginUiState.userPassword,
                 onValueChange = onPasswordChange
             )
-            // Display a message based on the current user state, such as success or error
-            UserStateMessage(userState = state.userState)
+            // Display a message based on the current user loginUiState, such as success or error
+            UserloginUiStateMessage(userloginUiState = loginUiState.userState)
 
             Spacer(modifier = Modifier.height(50.dp))
             // Button for the registration action
@@ -112,11 +122,11 @@ fun SignUpScreenContent(
 
 
 @Composable
-private fun UserStateMessage(userState: UserState) {
-    // Display a message based on the user state (e.g., success or error message)
-    val message = when (userState) {
-        is UserState.Success -> userState.message
-        is UserState.Error -> userState.message
+private fun UserloginUiStateMessage(userloginUiState: UserState) {
+    // Display a message based on the user loginUiState (e.g., success or error message)
+    val message = when (userloginUiState) {
+        is UserState.Success -> userloginUiState.message
+        is UserState.Error -> userloginUiState.message
         else -> null
     }
 

@@ -21,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothEvent
 import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothViewModel
 import kotlinx.coroutines.flow.collectLatest
@@ -33,7 +32,8 @@ fun BluetoothScreen(
     viewModel: BluetoothViewModel,
     onBluetoothEnableFailed: () -> Unit = {},
 ) {
-    val state by viewModel.state.collectAsState()
+    val bluetoothUiState by viewModel.bluetoothUiState.collectAsState()
+    //val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     var showConnectionMessage by remember { mutableStateOf(false) }
@@ -73,8 +73,8 @@ fun BluetoothScreen(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = { contentPadding ->
             DeviceScreen(
-                state = state,
-                connectedDevice = state.connectedDevice,
+                state = bluetoothUiState,
+                connectedDevice = bluetoothUiState.connectedDevice,
                 onStartScan = viewModel::startScan,
                 onStopScan = viewModel::stopScan,
                 onDeviceClick = viewModel::connectToDevice,

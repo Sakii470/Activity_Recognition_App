@@ -5,6 +5,7 @@
     <string name="welcome">Welcome</string>
     <string name="first_name">First Name</string>
     <string name="email">Email</string>
+    <string name="name">Name</string>
     <string name="password">Password</string>
     <string name="hide_password">Hide password</string>
     <string name="show_password">Show password</string>
@@ -17,4 +18,8 @@
     <string name="stop_scan">Stop Scan</string>
     <string name="devices">Devices</string>
     <string name="add_devices">Add device</string>
+    <string name="no_connect_ble_dev">Connect to Bluetooth Device!</string>
+    <string name="bluetooth_warnning">You are not connected to a Bluetooth device. Do you want to connect now?</string>
+
+
 </resources>

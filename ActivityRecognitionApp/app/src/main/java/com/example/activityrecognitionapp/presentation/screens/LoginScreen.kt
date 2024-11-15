@@ -1,5 +1,7 @@
 package com.example.activityrecognitionapp.presentation.screens
 
+import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -35,8 +38,7 @@ import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthVi
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: SupabaseAuthViewModel = hiltViewModel(),
-
+    viewModel: SupabaseAuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
 
     ) {
 
@@ -46,9 +48,10 @@ fun LoginScreen(
 
     // Observe userState to navigate to the main screen after successful login
     LaunchedEffect(userState) {
-        if (userState is UserState.Success) {
-            navController.navigate("mainScreen") {
+        if (userState is UserState.Success && uiLoginState.isLoggedIn) {
+            navController.navigate("home") {
                 popUpTo("login") { inclusive = true }
+                Log.d("AppNavigation", "isLogged from LoginScreen ${uiLoginState.isLoggedIn}")
             }
             viewModel.resetUserState()
         }

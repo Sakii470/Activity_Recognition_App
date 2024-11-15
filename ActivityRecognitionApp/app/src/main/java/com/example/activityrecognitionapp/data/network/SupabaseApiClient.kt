@@ -6,13 +6,20 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object SupabaseApiClient {
 
-    private const val BASE_URL = BuildConfig.supabaseUrl
+//        // Supabase GoTrue Client - dla autoryzacji
+//        val supabaseAuthClient = createSupabaseClient(
+//            supabaseUrl = BuildConfig.supabaseUrl,
+//            supabaseKey = BuildConfig.supabaseKey
+//        ) {
+//            install(GoTrue)
+//        }
 
-    val apiService: SupabaseApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(SupabaseApiService::class.java)
+        // Retrofit Client - dla zapytań HTTP
+        val apiService: SupabaseApiService by lazy {
+            Retrofit.Builder()
+                .baseUrl(BuildConfig.supabaseUrl)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+                .create(SupabaseApiService::class.java)
+        }
     }
-}

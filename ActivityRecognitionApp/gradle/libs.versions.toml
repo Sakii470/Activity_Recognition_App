@@ -6,12 +6,14 @@ agp = "8.3.0"
 # AndroidX and Jetpack Compose
 converterGson = "2.9.0"
 coreKtx = "1.12.0"
+gson = "2.10.1"
 lifecycleRuntimeKtx = "2.7.0"
 activityCompose = "1.8.2"
 composeBom = "2023.08.00"
 material3Android = "1.2.1"
 appcompat = "1.6.1"
 constraintlayout = "2.1.4"
+mpandroidchart = "v3.1.0"
 retrofit = "2.9.0"
 uiTooling = "1.7.4"
 uiToolingPreview = "1.7.4"
@@ -74,6 +76,7 @@ androidx-material-icons-extended = { module = "androidx.compose.material:materia
 # Hilt for Dependency Injection
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hiltAndroid" }
 hilt-android-compiler = { module = "com.google.dagger:hilt-android-compiler", version.ref = "hiltAndroidCompiler" }
 hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "hiltAndroidCompiler" }
@@ -96,4 +99,5 @@ ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktorClien
 # DataStore
 datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-datastore-core-android = { group = "androidx.datastore", name = "datastore-core-android", version.ref = "datastoreCoreAndroid" }
+mpandroidchart = { module = "com.github.PhilJay:MPAndroidChart", version.ref = "mpandroidchart" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }

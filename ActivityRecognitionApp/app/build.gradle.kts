@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.activityrecognitionapp"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -117,6 +117,12 @@ dependencies {
     //Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    //MPAndroidChart
+    implementation (libs.mpandroidchart)
+
+    //Gson
+    implementation (libs.gson)
 }
 
 

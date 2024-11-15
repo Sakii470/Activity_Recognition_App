@@ -109,18 +109,35 @@ class AndroidBluetoothController(
             val device = result.device
             val rssi = result.rssi
 
+            Log.d(
+                "BLE Scan",
+                "Znaleziono urządzenie: ${device.name} - ${device.address} RSSI: $rssi"
+            )
+
             if (device.name != null && device.name.isNotEmpty()) {
                 val bluetoothDeviceDomain = device.toBluetoothDeviceDomain(rssi)
+                Log.d(
+                    "BLE Scan",
+                    "Konwertowano urządzenie: ${bluetoothDeviceDomain.name} - ${bluetoothDeviceDomain.address}"
+                )
+
                 _scannedDevices.update { devices ->
-                    // Check if the device already exists in the list
                     if (devices.any { it.address == bluetoothDeviceDomain.address }) {
-                        // If the device exists, return the unchanged list
+                        Log.d(
+                            "BLE Scan",
+                            "Urządzenie już istnieje na liście: ${bluetoothDeviceDomain.address}"
+                        )
                         devices
                     } else {
-                        // If the device is not in the list, add it
+                        Log.d(
+                            "BLE Scan",
+                            "Dodano urządzenie do listy: ${bluetoothDeviceDomain.name} - ${bluetoothDeviceDomain.address}"
+                        )
                         devices + bluetoothDeviceDomain
                     }
                 }
+
+                Log.d("BLE Scan", "Aktualna lista urządzeń: ${_scannedDevices.value}")
             }
         }
     }

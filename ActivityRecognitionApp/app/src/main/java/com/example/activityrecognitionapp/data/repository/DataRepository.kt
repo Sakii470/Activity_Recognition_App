@@ -2,67 +2,67 @@ package com.example.activityrecognitionapp.data.repository
 
 import android.util.Log
 import com.example.activityrecognitionapp.BuildConfig
-import com.example.activityrecognitionapp.data.model.ActivityCount
 import com.example.activityrecognitionapp.data.model.ActivityDataSupabase
-import com.example.activityrecognitionapp.data.network.SupabaseApiClient
 import com.example.activityrecognitionapp.data.network.SupabaseApiService
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
+import com.example.activityrecognitionapp.presentation.states.DataUiState.ActivityCount
+import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class DataRepository@Inject constructor(
-    private val supabaseApiService: SupabaseApiService)
-{
+class DataRepository @Inject constructor(
+    private val supabaseApiService: SupabaseApiService
+) {
 
-    fun sendActivityData(data: ActivityDataSupabase,onResult: (Boolean)-> Unit){
-        val call = SupabaseApiClient.apiService.insertActivityData(
-            authorization = "Bearer ${BuildConfig.supabaseKey}",
-            apiKey = BuildConfig.supabaseKey,
-            data=data
+    suspend fun sendActivityData(data: ActivityDataSupabase): Boolean {
+        return try {
+            val response = supabaseApiService.insertActivityData(
+                authorization = "Bearer ${BuildConfig.supabaseKey}",
+                apiKey = BuildConfig.supabaseKey, // Bez "Bearer "
+                data = data
+            )
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e("DataRepository", "Error sending activity data", e)
+            false
+        }
+    }
+
+    suspend fun getUserActivitiesForMonth(userId: String): List<ActivityCount>? {
+        val calendar = Calendar.getInstance()
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
+        val startOfMonth = String.format("%04d-%02d-01T00:00:00Z", year, month)
+        val endOfMonth = String.format(
+            "%04d-%02d-%02dT23:59:59Z",
+            year,
+            month,
+            calendar.getActualMaximum(Calendar.DAY_OF_MONTH)
         )
 
-        call.enqueue(object : Callback<Void> {
-            override fun onResponse(call: Call<Void>, response: Response<Void>) {
-                if (response.isSuccessful) {
-                    onResult(true)
+        val userIdFilter = "eq.$userId"
+        val timestampGte = "gte.$startOfMonth"
+        val timestampLte = "lte.$endOfMonth"
 
-                    Log.d("xsaxsa", "Dane aktywności wysłane pomyślnie")
-                } else {
-                    onResult(false)
-                    Log.d("asdas", "Błąd wysyłania danych aktywności: ${response.code()} - ${response.message()} - ${response.errorBody()?.string()}")
-                }
+        return try {
+            val response = supabaseApiService.getUserActivitiesForMonth(
+                apiKey = BuildConfig.supabaseKey, // Bez "Bearer "
+                authorization = "Bearer ${BuildConfig.supabaseKey}",
+                userIdFilter = userIdFilter,
+                timestampGte = timestampGte,
+                timestampLte = timestampLte
+            )
+            if (response.isSuccessful) {
+                Log.d("Supabase", "Data fetched successfully: ${response.body()}")
+                response.body()
+            } else {
+                val errorBody = response.errorBody()?.string()
+                Log.e("Supabase", "Error fetching data: ${response.code()} - ${response.message()} - $errorBody")
+                null
             }
-
-
-            fun getUserActivities(userId: String, onResult: (List<ActivityCount>?) -> Unit) {
-                val authHeader = "Bearer ${BuildConfig.supabaseKey}"
-
-                supabaseApiService.getUserActivities(
-                    authorization = authHeader,
-                    apiKey = BuildConfig.supabaseKey,
-                    userId = userId
-                ).enqueue(object : Callback<List<ActivityCount>> {
-                    override fun onResponse(
-                        call: Call<List<ActivityCount>>,
-                        response: Response<List<ActivityCount>>
-                    ) {
-                        if (response.isSuccessful) {
-                            onResult(response.body())
-                        } else {
-                            Log.e("Supabase", "Błąd pobierania danych: ${response.errorBody()?.string()}")
-                            onResult(null)
-                        }
-                    }
-
-
-                    override fun onFailure(call: Call<List<ActivityCount>>, t: Throwable) {
-                        onResult(false)
-                        Log.d("dsadsad","Bład połaczenia ${t.message}")
-                    }
-                })
+        } catch (e: Exception) {
+            Log.e("Supabase", "Connection error: ${e.message}")
+            null
+        }
     }
-
-    }
+}

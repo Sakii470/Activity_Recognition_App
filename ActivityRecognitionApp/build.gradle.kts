@@ -6,6 +6,4 @@ plugins {
     id ("com.android.library") version "8.3.0" apply false
     id ("com.google.dagger.hilt.android") version "2.48" apply false
 
-
-
 }

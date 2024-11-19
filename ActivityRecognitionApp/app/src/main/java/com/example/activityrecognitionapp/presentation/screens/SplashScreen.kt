@@ -25,18 +25,24 @@ import com.example.activityrecognitionapp.R
 import kotlinx.coroutines.delay
 
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(navController: NavController,
+
+                 ) {
+// Collect the UI state from the ViewModel
 
     var isVisible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         isVisible = true
         delay(1500) // czas wyświetlania splash screenu
         isVisible = false
-        delay(300) // czas na zakończenie animacji wyjścia
+        delay(300) // czas na zakończenie animacji wyjści
+        //Log.d("Splash","isLoggedIn = ${isLoggedIn}")
+
         navController.navigate("login") {
             popUpTo("splash") { inclusive = true } // usuń splash screen z back stacka
         }
     }
+
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn() + slideInVertically(initialOffsetY = { -1000 }),

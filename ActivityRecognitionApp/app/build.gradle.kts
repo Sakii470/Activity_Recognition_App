@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.example.activityrecognitionapp"
-    compileSdk = 34
+    compileSdk = 35
 
     buildFeatures {
         buildConfig = true
@@ -90,6 +90,10 @@ dependencies {
     // Hilt for dependency injection
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.common)
+    implementation (libs.androidx.hilt.work)
+
+
     kapt(libs.hilt.android.compiler)
 
     // Testing libraries
@@ -123,6 +127,25 @@ dependencies {
 
     //Gson
     implementation (libs.gson)
+
+    //Room for Data
+    implementation (libs.androidx.room.runtime)
+    kapt (libs.androidx.room.compiler)
+    implementation (libs.androidx.room.ktx)
+
+    //Data Synchronization
+    implementation (libs.androidx.work.runtime.ktx)
+
+    // Hilt
+    implementation (libs.hilt.android.v249)
+    kapt (libs.hilt.compiler)
+//
+//    // Hilt WorkManager integration
+    implementation (libs.androidx.hilt.work)
+    kapt (libs.androidx.hilt.compiler)
+//
+//    // WorkManager
+    implementation (libs.androidx.work.runtime.ktx)
 }
 
 

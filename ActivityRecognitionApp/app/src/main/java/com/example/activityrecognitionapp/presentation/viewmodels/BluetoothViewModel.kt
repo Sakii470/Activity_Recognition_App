@@ -1,10 +1,10 @@
 package com.example.activityrecognitionapp.presentation.viewmodels
 
 
-import android.bluetooth.BluetoothAdapter
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.activityrecognitionapp.components.NetworkBannerManager
 import com.example.activityrecognitionapp.data.bluetooth.BluetoothAdapterProvider
 import com.example.activityrecognitionapp.data.model.ActivityDataSupabase
 import com.example.activityrecognitionapp.data.repository.DataRepository
@@ -14,7 +14,6 @@ import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 import com.example.activityrecognitionapp.domain.ConnectionResult
 import com.example.activityrecognitionapp.presentation.states.BluetoothUiState
 import com.example.activityrecognitionapp.presentation.states.HomeUiState
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -42,19 +41,12 @@ class BluetoothViewModel @Inject constructor(
     private val bluetoothController: BluetoothController,
     private val tokenRepository: TokenRepository,
     private val repository: DataRepository,
-    private val adapterProvider: BluetoothAdapterProvider
+    private val adapterProvider: BluetoothAdapterProvider,
+    //private val connectivityObserver: NetworkConnectivityObserver,
+    private val networkBannerManager: NetworkBannerManager
+
 ) : ViewModel() {
-
-
-    // Bluetooth adapter
-    private val bluetoothAdapter: BluetoothAdapter? = adapterProvider.getBluetoothAdapter()
-
-    // Typ Job jest używany do obsługi zadań w tle
     private var deviceConnectionJob: Job? = null
-
-    // Używany do aktywnego odświeżania UI, jeśli coś się stanie.
-//    private val _state = MutableStateFlow(BluetoothUiState())
-//    val state: StateFlow<BluetoothUiState> = _state.asStateFlow()
 
     // Bluetooth UI State
     private val _bluetoothUiState = MutableStateFlow(BluetoothUiState())
@@ -66,41 +58,65 @@ class BluetoothViewModel @Inject constructor(
     private val _errorMessages = MutableSharedFlow<String>()
     val errorMessages: SharedFlow<String> = _errorMessages.asSharedFlow()
 
-    private val _events = MutableSharedFlow<BluetoothEvent>()
+    private val _events = MutableSharedFlow<BluetoothEvent>(replay = 1)
     val events: SharedFlow<BluetoothEvent> = _events.asSharedFlow()
 
-//    // Kombinacja dwóch StateFlow w jeden StateFlow
-//    val combinedState = combine(
-//        bluetoothController.scannedDevices,
-//        _state
-//    ) { scannedDevices, state ->
-//        state.copy(
-//            scannedDevices = scannedDevices
-//        )
-//    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
+    val isNetworkAvailable: StateFlow<Boolean> = networkBannerManager.isNetworkAvailable
+    val showNetworkBanner: StateFlow<Boolean> = networkBannerManager.showNetworkBanner
 
-    // Inicjalizacja subskrypcji na przepływach z BluetoothController
+
+
     init {
-        bluetoothController.scannedDevices.onEach { scannedDevices ->
-            _bluetoothUiState.update { it.copy(scannedDevices = scannedDevices) }
-        }.launchIn(viewModelScope)
 
-        bluetoothController.isConnected.onEach { isConnected ->
-            _bluetoothUiState.update { it.copy(isConnected = isConnected) }
-        }.launchIn(viewModelScope)
+        //connectivityObserver.start()
+        //observeNetworkConnectivity()
 
-        bluetoothController.errors.onEach { error ->
-            _bluetoothUiState.update { it.copy(errorMessage = error) }
-        }.launchIn(viewModelScope)
+        // Subskrypcja isBluetoothEnabled
+        viewModelScope.launch {
+            bluetoothController.isBluetoothEnabled.collect { isEnabled ->
+                _bluetoothUiState.update { it.copy(isBluetoothEnabled = isEnabled) }
+            }
+        }
+
+        // Subskrypcja isConnected
+        viewModelScope.launch {
+            bluetoothController.isConnected.collect { isConnected ->
+                _bluetoothUiState.update { it.copy(isConnected = isConnected) }
+            }
+        }
+
+        // Subskrypcja scannedDevices
+        viewModelScope.launch {
+            bluetoothController.scannedDevices.collect { scannedDevices ->
+                _bluetoothUiState.update { it.copy(scannedDevices = scannedDevices) }
+            }
+        }
+
+        // Subskrypcja błędów
+        viewModelScope.launch {
+            bluetoothController.errors.collect { error ->
+                _bluetoothUiState.update { it.copy(errorMessage = error) }
+                _errorMessages.emit(error)
+            }
+        }
+    }
+
+    private fun observeNetworkConnectivity() {
+        viewModelScope.launch {
+            showNetworkBanner.collect { show ->
+                if (!show) {
+                    Log.d("BluetoothViewModel", "Network banner dismissed.")
+                }
+            }
+        }
     }
 
     // Funkcja odpowiedzialna za nawiązanie połączenia z urządzeniem Bluetooth.
     fun connectToDevice(device: BluetoothDeviceDomain) {
         _bluetoothUiState.update { it.copy(isConnecting = true) }
-        deviceConnectionJob =
-            bluetoothController
-                .connectToDevice(device)
-                .listen()
+        deviceConnectionJob = bluetoothController
+            .connectToDevice(device)
+            .listen()
     }
 
     // Funkcja odpowiedzialna za rozłączenie z bieżącym urządzeniem Bluetooth.
@@ -110,7 +126,8 @@ class BluetoothViewModel @Inject constructor(
         _bluetoothUiState.update {
             it.copy(
                 isConnecting = false,
-                isConnected = false
+                isConnected = false,
+                connectedDevice = null
             )
         }
     }
@@ -142,9 +159,12 @@ class BluetoothViewModel @Inject constructor(
                             connectedDevice = result.connectedDevice,
                         )
                     }
-                    updateHomeUi(result.dataFromBluetooth)
+                    if (result.dataFromBluetooth != null) {
+                        updateHomeUi(result.dataFromBluetooth)
+                    } else {
+                        updateHomeUi("Connect to Bluetooth Device!")
+                    }
                 }
-
                 is ConnectionResult.Error -> {
                     _bluetoothUiState.update {
                         it.copy(
@@ -153,6 +173,7 @@ class BluetoothViewModel @Inject constructor(
                             errorMessage = result.message
                         )
                     }
+                    _errorMessages.emit(result.message)
                 }
             }
         }
@@ -162,14 +183,16 @@ class BluetoothViewModel @Inject constructor(
                     it.copy(
                         isConnected = false,
                         isConnecting = false,
+                        errorMessage = throwable.message
                     )
                 }
+                _errorMessages.emit(throwable.message ?: "Unknown error")
             }
             .launchIn(viewModelScope)
     }
 
     // Funkcja do wysyłania danych aktywności do Supabase.
-    fun sendActivityData(activityType: String) {
+    private fun sendActivityData(activityType: String) {
         viewModelScope.launch {
             val userId = tokenRepository.getUserId()
             if (userId == null) {
@@ -178,9 +201,7 @@ class BluetoothViewModel @Inject constructor(
                 return@launch
             }
 
-            //val activityType = result.dataFromBluetooth.substringBefore("=") // Adjust parsing as needed
             val timestamp = getCurrentTimestampFormatted()
-
             val data = ActivityDataSupabase(
                 user_id = userId,
                 activity_type = activityType.substringBefore("="),
@@ -188,41 +209,45 @@ class BluetoothViewModel @Inject constructor(
             )
 
             try {
-                val success = repository.sendActivityData(data)
-                if (success) {
-                    Log.d("BluetoothViewModel", "Activity Data sent successfully")
-                } else {
-                    Log.e("BluetoothViewModel", "Error sending activity data")
-                    Log.d("JSON Data", Gson().toJson(data))
-                    _errorMessages.emit("Error sending activity data.")
-                }
+                // Save data locally first
+                repository.saveActivityDataLocally(data)
+                Log.d("BluetoothViewModel", "Activity Data saved locally")
+
+                // Then try to sync local changes
+                    repository.syncLocalChanges()
+
             } catch (e: Exception) {
-                Log.e("BluetoothViewModel", "Exception when sending activity data", e)
+                Log.e("BluetoothViewModel", "Exception when saving or syncing activity data", e)
                 _errorMessages.emit("Exception: ${e.message}")
             }
         }
     }
 
     // Funkcja aktualizująca stan HomeUiState na podstawie rodzaju aktywności.
-    fun updateHomeUi(kindActivity: String) {
-        _homeUiState.value = _homeUiState.value.copy(
-            stand = _homeUiState.value.stand + if (kindActivity.startsWith("stand")) 1 else 0,
-            walk = _homeUiState.value.walk + if (kindActivity.startsWith("walk")) 1 else 0,
-            run = _homeUiState.value.run + if (kindActivity.startsWith("run")) 1 else 0,
-            total = _homeUiState.value.stand + _homeUiState.value.walk + _homeUiState.value.run
-        )
+    private fun updateHomeUi(kindActivity: String) {
+        _homeUiState.update {
+            it.copy(
+                stand = it.stand + if (kindActivity.startsWith("stand")) 1 else 0,
+                walk = it.walk + if (kindActivity.startsWith("walk")) 1 else 0,
+                run = it.run + if (kindActivity.startsWith("run")) 1 else 0,
+                total = it.total + 1
+            )
+        }
     }
 
-    // Funkcja obsługująca zdarzenie włączenia Bluetooth.
-    fun onBluetoothEnabled() {
+    // Emitowanie zdarzenia żądania włączenia Bluetooth
+
+
+    fun enableBluetooth() {
         viewModelScope.launch {
-            _bluetoothUiState.update { it.copy(errorMessage = null) }
+            Log.d("BluetoothViewModel", "emit from enableBluetooth")
+            _events.emit(BluetoothEvent.RequestEnableBluetooth)
         }
     }
 
     // Funkcja sprawdzająca, czy Bluetooth jest włączony.
     fun isBluetoothEnabled(): Boolean {
-        return bluetoothAdapter?.isEnabled == true
+        return _bluetoothUiState.value.isBluetoothEnabled
     }
 
     // Funkcja obsługująca niepowodzenie włączenia Bluetooth.
@@ -239,23 +264,33 @@ class BluetoothViewModel @Inject constructor(
         }
     }
 
-    // Funkcja emitująca zdarzenie żądania włączenia Bluetooth.
-    fun enableBluetooth() {
-        viewModelScope.launch {
-            _events.emit(BluetoothEvent.RequestEnableBluetooth)
-        }
+    fun hideNetworkBanner() {
+        networkBannerManager.dismissBanner()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        networkBannerManager.stopObserving()
     }
 }
 
+
 fun getCurrentTimestampFormatted(): String {
     val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-    formatter.timeZone = TimeZone.getTimeZone("UTC")
+    formatter.timeZone = TimeZone.getDefault()
     return formatter.format(Date())
 }
+
+
 
 sealed class BluetoothEvent {
     object RequestEnableBluetooth : BluetoothEvent()
 }
+
+
+
+
+
 
 
 

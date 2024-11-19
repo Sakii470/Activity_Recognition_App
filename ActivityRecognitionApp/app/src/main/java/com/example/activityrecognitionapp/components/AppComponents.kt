@@ -7,7 +7,7 @@ package com.example.activityrecognitionapp.components
  * a cohesive theme throughout the app.
  */
 
-import android.graphics.Rect
+
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -15,14 +15,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-
 import androidx.compose.foundation.layout.Column
-
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +28,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
@@ -44,12 +39,9 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-
-
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -59,15 +51,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -83,14 +72,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.activityrecognitionapp.R
+import com.example.activityrecognitionapp.domain.BluetoothDevice
 import com.example.activityrecognitionapp.presentation.theme.LighterPrimary
 import com.example.activityrecognitionapp.presentation.theme.Primary
 import com.example.activityrecognitionapp.presentation.theme.Secondary
-import com.example.activityrecognitionapp.R
-import com.example.activityrecognitionapp.domain.BluetoothDevice
-import java.nio.file.Path
-import kotlin.io.path.Path
-import kotlin.io.path.moveTo
 
 
 @Composable
@@ -385,7 +371,6 @@ fun BluetoothDeviceList(
     }
 }
 
-
     @Composable
     fun NotificationMessage(
         message: String,
@@ -441,9 +426,18 @@ fun ActivityBarChart(
     val finalRunning = if (total == 0f) 0f else normalizedRunning
 
     // Animowane wartości procentowe
-    val animatedStanding by animateFloatAsState(targetValue = finalStanding, animationSpec = tween(1000))
-    val animatedWalking by animateFloatAsState(targetValue = finalWalking, animationSpec = tween(1000))
-    val animatedRunning by animateFloatAsState(targetValue = finalRunning, animationSpec = tween(1000))
+    val animatedStanding by animateFloatAsState(
+        targetValue = finalStanding,
+        animationSpec = tween(durationMillis = 1000)
+    )
+    val animatedWalking by animateFloatAsState(
+        targetValue = finalWalking,
+        animationSpec = tween(durationMillis = 1000)
+    )
+    val animatedRunning by animateFloatAsState(
+        targetValue = finalRunning,
+        animationSpec = tween(durationMillis = 1000)
+    )
 
     Canvas(
         modifier = modifier
@@ -458,9 +452,18 @@ fun ActivityBarChart(
 
         // Lista segmentów do rysowania
         val segments = listOf(
-            Pair(animatedStanding, Brush.horizontalGradient(listOf(Color(0xFF1E88E5), Color(0xFF1976D2)))), // Niebieski
-            Pair(animatedWalking, Brush.horizontalGradient(listOf(Color(0xFF43A047), Color(0xFF388E3C)))),  // Zielony
-            Pair(animatedRunning, Brush.horizontalGradient(listOf(Color(0xFFE53935), Color(0xFFD32F2F))) )    // Czerwony
+            Pair(
+                animatedStanding,
+                Brush.horizontalGradient(listOf(Color(0xFF1E88E5), Color(0xFF1976D2)))
+            ), // Niebieski
+            Pair(
+                animatedWalking,
+                Brush.horizontalGradient(listOf(Color(0xFF43A047), Color(0xFF388E3C)))
+            ),  // Zielony
+            Pair(
+                animatedRunning,
+                Brush.horizontalGradient(listOf(Color(0xFFE53935), Color(0xFFD32F2F)))
+            )    // Czerwony
         )
 
         segments.forEachIndexed { index, segment ->
@@ -472,7 +475,7 @@ fun ActivityBarChart(
             val rect =
                 androidx.compose.ui.geometry.Rect(startX, 0f, startX + segmentWidth, barHeight)
 
-            val path = androidx.compose.ui.graphics.Path().apply {
+            val path = Path().apply {
                 when (index) {
                     0 -> {
                         // Pierwszy segment - zaokrąglone lewe rogi
@@ -480,12 +483,14 @@ fun ActivityBarChart(
                             RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
                         )
                     }
+
                     segments.lastIndex -> {
                         // Ostatni segment - zaokrąglone prawe rogi
                         addRoundRect(
                             RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
                         )
                     }
+
                     else -> {
                         // Środkowe segmenty - płaskie rogi
                         addRoundRect(
@@ -499,10 +504,89 @@ fun ActivityBarChart(
             drawPath(
                 path = path,
                 brush = brush,
-               // style = Fill
+                style = Fill
             )
 
             startX += segmentWidth
         }
     }
 }
+
+@Composable
+fun LegendItem(
+    color: Color,
+    labelColor: Color,
+    label: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(16.dp)
+                .background(color = color, shape = RoundedCornerShape(4.dp))
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            color = labelColor
+        )
+    }
+}
+
+@Composable
+fun ActivityBarChartWithLegend(
+    standingPercentage: Float,
+    walkingPercentage: Float,
+    runningPercentage: Float,
+    modifier: Modifier = Modifier,
+    chartHeight: Dp = 30.dp,
+    cornerRadius: Dp = 8.dp,
+    legendSpacing: Dp = 15.dp
+) {
+    Column(modifier = modifier) {
+        // Wykres słupkowy
+        ActivityBarChart(
+            standingPercentage = standingPercentage,
+            walkingPercentage = walkingPercentage,
+            runningPercentage = runningPercentage,
+            modifier = Modifier
+                .fillMaxWidth(),
+            height = chartHeight,
+            cornerRadius = cornerRadius
+        )
+
+        Spacer(modifier = Modifier.height(legendSpacing))
+
+        // Legenda
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+
+        ) {
+            LegendItem(
+                color = Color(0xFF1E88E5), // Niebieski
+                label = "Standing",
+                labelColor = MaterialTheme.colorScheme.onBackground
+            )
+            LegendItem(
+                color = Color(0xFF43A047), // Zielony
+                label = "Walking",
+                labelColor = MaterialTheme.colorScheme.onBackground
+            )
+            LegendItem(
+                color = Color(0xFFE53935), // Czerwony
+                label = "Running",
+                labelColor = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
+}
+
+
+

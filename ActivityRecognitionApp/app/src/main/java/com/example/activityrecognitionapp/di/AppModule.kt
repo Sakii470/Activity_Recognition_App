@@ -2,11 +2,17 @@ package com.example.activityrecognitionapp.di
 
 //import io.github.jan.supabase.BuildConfig
 //import io.github.jan.supabase.SupabaseClient
+
 import android.content.Context
+import androidx.room.Room
 import com.example.activityrecognitionapp.BuildConfig
+import com.example.activityrecognitionapp.components.NetworkBannerManager
 import com.example.activityrecognitionapp.data.bluetooth.AndroidBluetoothController
+import com.example.activityrecognitionapp.data.network.NetworkConnectivityObserver
 import com.example.activityrecognitionapp.data.network.SupabaseApiClient
 import com.example.activityrecognitionapp.data.network.SupabaseApiService
+import com.example.activityrecognitionapp.data.repository.ActivityDataDao
+import com.example.activityrecognitionapp.data.repository.AppDatabase
 import com.example.activityrecognitionapp.data.repository.DataRepository
 import com.example.activityrecognitionapp.data.repository.TokenRepository
 import com.example.activityrecognitionapp.domain.ActivityDataProcessor
@@ -16,6 +22,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import javax.inject.Singleton
 
 @Module
@@ -44,23 +53,49 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideDataRepository(supabaseApiService: SupabaseApiService): DataRepository {
-        return DataRepository(supabaseApiService)
+    fun provideDataRepository(supabaseApiService: SupabaseApiService, activityDataDao: ActivityDataDao
+    , tokenRepository: TokenRepository, @ApplicationContext context: Context): DataRepository {
+        return DataRepository(supabaseApiService, activityDataDao, tokenRepository,context)
     }
 
     @Provides
     @Singleton
     fun provideTokenRepository(@ApplicationContext context: Context): TokenRepository {
-        return TokenRepository(context) // Załóżmy, że TokenRepository nie potrzebuje dodatkowej konfiguracji
+        return TokenRepository(context)
     }
 
+    @Provides
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase{
+        return Room.databaseBuilder(context, AppDatabase::class.java, "app_database").fallbackToDestructiveMigration()
+        .build()
+    }
 
+    @Provides
+    fun provideActivityDataDao(database: AppDatabase): ActivityDataDao {
+        return database.activityDataDao()
+    }
 
+    @Singleton
+    @Provides
+    fun provideConnectivityObserver(@ApplicationContext context: Context): NetworkConnectivityObserver {
+        return NetworkConnectivityObserver(context)
+    }
 
+    @Singleton
+    @Provides
+    fun provideCoroutineScope(): CoroutineScope {
+        return CoroutineScope(Dispatchers.Main + SupervisorJob())
+    }
 
-
-
-
+    @Singleton
+    @Provides
+    fun provideNetworkBannerManager(
+        connectivityObserver: NetworkConnectivityObserver,
+        coroutineScope: CoroutineScope,
+        repository: DataRepository // Dodaj repository, jeśli używasz
+    ): NetworkBannerManager {
+        return NetworkBannerManager(connectivityObserver, repository,coroutineScope)
+    }
 
 
     }

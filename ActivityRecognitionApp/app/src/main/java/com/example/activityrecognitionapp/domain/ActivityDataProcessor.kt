@@ -34,9 +34,9 @@ class ActivityDataProcessor @Inject constructor() {
             .map { (hour, activities) ->
                 ActivityCountAggregated(
                     date = "$hour:00:00", // 'yyyy-MM-dd'T'HH:00:00'
-                    stand = activities.filter { it.activity_type.lowercase() == "stand" }.sumOf { it.count },
-                    walk = activities.filter { it.activity_type.lowercase() == "walk" }.sumOf { it.count },
-                    run = activities.filter { it.activity_type.lowercase() == "run" }.sumOf { it.count }
+                    stand = activities.filter { it.activity_type.lowercase() == "stand" }.sumOf { it.count ?: 0 },
+                    walk = activities.filter { it.activity_type.lowercase() == "walk" }.sumOf { it.count ?: 0 },
+                    run = activities.filter { it.activity_type.lowercase() == "run" }.sumOf { it.count ?: 0 }
                 )
             }
             .sortedBy { it.date }
@@ -147,9 +147,9 @@ class ActivityDataProcessor @Inject constructor() {
         val stackedSet = BarDataSet(entries, "Activities").apply {
             stackLabels = arrayOf("Stand", "Walk", "Run")
             colors = listOf(
-                Color.parseColor("#82B1FF"),
-                Color.parseColor("#BB86FC"),
-                Color.parseColor("#03DAC5")
+                Color.parseColor("#1E88E5"),
+                Color.parseColor("#43A047"),
+                Color.parseColor("#E53935")
             )
             setDrawValues(false)
         }

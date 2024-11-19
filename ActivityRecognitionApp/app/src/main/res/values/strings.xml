@@ -20,6 +20,9 @@
     <string name="add_devices">Add device</string>
     <string name="no_connect_ble_dev">Connect to Bluetooth Device!</string>
     <string name="bluetooth_warnning">You are not connected to a Bluetooth device. Do you want to connect now?</string>
+    <string name="hi">Hi</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="connected">Connected</string>
 
 
 </resources>

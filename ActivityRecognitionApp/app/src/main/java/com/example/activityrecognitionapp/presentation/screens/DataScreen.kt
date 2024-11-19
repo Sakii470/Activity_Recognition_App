@@ -69,6 +69,7 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+
     // State for showing the DatePicker dialog
     var showDatePicker by remember { mutableStateOf(false) }
     // State for the selected date
@@ -95,6 +96,7 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
     Log.d("DataScreen", "Filtered Activity Counts: $filteredActivityCounts")
     Log.d("DataScreen", "X-Axis Labels: $xAxisLabels")
     Log.d("DataScreen", "Max Y Value: $maxYValue")
+
 
     Box(
         modifier = Modifier

@@ -1,5 +1,6 @@
 package com.example.activityrecognitionapp.presentation.states
 
+import android.graphics.Color
 import com.example.activityrecognitionapp.domain.BluetoothDevice
 import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 
@@ -16,8 +17,17 @@ data class BluetoothUiState(
     val isConnecting: Boolean = false,
     val errorMessage: String? = null,
     val dataFromBluetooth: String? = null,
-    val connectedDevice: BluetoothDeviceDomain? = null
+    val connectedDevice: BluetoothDeviceDomain? = null,
+    val isBluetoothEnabled: Boolean = false
 
 )
+
+data class NetworkBannerState(
+    val showBanner: Boolean = false,
+    val message: String = "",
+    val color: Int = Color.BLUE
+)
+
+
 
 

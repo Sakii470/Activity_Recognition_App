@@ -39,19 +39,20 @@ import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthVi
 fun LoginScreen(
     navController: NavController,
     viewModel: SupabaseAuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
-
     ) {
 
     // Collect the UI state from the ViewModel
     val uiLoginState by viewModel.uiLoginState.collectAsState()
     val userState = uiLoginState.userState
+    val isLoggedIn = uiLoginState.isLoggedIn
 
     // Observe userState to navigate to the main screen after successful login
     LaunchedEffect(userState) {
-        if (userState is UserState.Success && uiLoginState.isLoggedIn) {
+        if (userState is UserState.Success && isLoggedIn)
+             {
             navController.navigate("home") {
                 popUpTo("login") { inclusive = true }
-                Log.d("AppNavigation", "isLogged from LoginScreen ${uiLoginState.isLoggedIn}")
+                Log.d("AppNavigation", "isLogged from LoginS creen ${uiLoginState.isLoggedIn}")
             }
             viewModel.resetUserState()
         }
@@ -139,7 +140,7 @@ fun LoginScreenContent(
             DividerTextComponent()
             // Clickable text to navigate to the register screen
             ClickableTextComponent(
-                normalText = "Don't have an acoount yet?",
+                normalText = "",
                 clickableText = " Register",
                 onTextSelected = onRegisterClick
             )

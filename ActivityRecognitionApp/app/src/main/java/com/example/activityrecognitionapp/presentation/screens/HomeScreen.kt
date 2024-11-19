@@ -1,14 +1,18 @@
 package com.example.activityrecognitionapp.presentation.screens
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -24,11 +28,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.activityrecognitionapp.R
-import com.example.activityrecognitionapp.components.ActivityBarChart
+import com.example.activityrecognitionapp.components.ActivityBarChartWithLegend
 import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothViewModel
 
 @Composable
@@ -77,7 +83,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                         )
                     } else {
                         Text(
-                            text = stringResource(id = R.string.no_connect_ble_dev),
+                            text = stringResource(id = R.string.no_connect_ble_dev) ,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -85,15 +91,51 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(35.dp))
 
-            ActivityBarChart(
+            ActivityBarChartWithLegend(
                 standingPercentage = homeUiState.standPercentage,
                 walkingPercentage = homeUiState.walkPercentage,
                 runningPercentage = homeUiState.runPercentage,
+                modifier = Modifier.fillMaxWidth()
             )
+
+
+            Spacer(modifier = Modifier.height(50.dp))
+
+            // Row with two icons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.start), // Replace with your desired icon
+                    contentDescription = "Home Icon",
+                    //tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clickable {  },
+                    tint = Color.Unspecified
+                )
+
+                Icon(
+                    painter = painterResource(id = R.drawable.pause), // Replace with your desired icon
+                    contentDescription = "Settings Icon",
+                    //tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(70.dp)
+                        .clickable {  },
+                    tint = Color.Unspecified
+                )
+            }
         }
     }
+
+
+
 
     // Display AlertDialog if not connected to a Bluetooth device
     if (showDialog) {
@@ -118,7 +160,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                 TextButton(
                     onClick = {
                         showDialog = false
-                        navController.navigate("device")
+                        navController.navigate("bluetooth")
                     },
                     modifier = Modifier.padding(horizontal = 8.dp)
                 ) {

@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.components
+package com.example.activityrecognitionapp.components.network
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility

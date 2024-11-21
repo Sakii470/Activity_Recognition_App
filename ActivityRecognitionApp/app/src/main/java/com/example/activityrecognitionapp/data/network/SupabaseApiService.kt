@@ -24,8 +24,8 @@ interface SupabaseApiService {
             @Header("apikey") apiKey: String,
             @Header("Authorization") authorization: String,
             @Query("user_id") userIdFilter: String,
-            @Query("timestamp") timestampGte: String, // Data początkowa
-            @Query("timestamp") timestampLte: String, // Data końcowa
+            @Query("timestamp") timestampGte: String, // Start Date
+            @Query("timestamp") timestampLte: String, // End Date
             @Query("select") select: String = "user_id,timestamp,activity_type,count"
         ): Response<List<ActivityCount>>
     }

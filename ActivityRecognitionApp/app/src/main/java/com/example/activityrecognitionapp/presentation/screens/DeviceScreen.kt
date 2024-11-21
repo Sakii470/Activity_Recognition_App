@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -20,12 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,7 +45,7 @@ fun DeviceScreen(
     onStartScan: () -> Unit,
     onDisconnect: () -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit,
-    enableBluetooth: () -> Unit,
+    //enableBluetooth: () -> Unit,
     contentPadding: PaddingValues // Dodaj parametr contentPadding
 
 ) {
@@ -62,7 +56,7 @@ fun DeviceScreen(
         onStartScan = onStartScan,
         onDisconnect = onDisconnect,
         onDeviceClick = onDeviceClick,
-        enableBluetooth = enableBluetooth
+       // enableBluetooth = enableBluetooth
 
 
     )
@@ -75,33 +69,8 @@ fun DeviceScreenContent(
     onStartScan: () -> Unit,
     onDisconnect: () -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit,
-    enableBluetooth: ()  -> Unit
+    //enableBluetooth: ()  -> Unit
 ) {
-    var showBluetoothDialog by remember { mutableStateOf(!state.isBluetoothEnabled) }
-    // Wyświetl AlertDialog, jeśli Bluetooth jest wyłączony
-    if (showBluetoothDialog) {
-        AlertDialog(
-            onDismissRequest = { /* Opcjonalne: Co zrobić po zamknięciu dialogu */ },
-            title = { Text(text = "Bluetooth wyłączony") },
-            text = { Text(text = "Bluetooth jest wyłączony. Czy chcesz go włączyć?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    showBluetoothDialog = false
-                    enableBluetooth()
-                }) {
-                    Text("Enable")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showBluetoothDialog = false
-                    // Opcjonalne: Co zrobić, gdy użytkownik odmawia
-                }) {
-                    Text("")
-                }
-            }
-        )
-    }
 
     Column(
         modifier = Modifier.fillMaxSize()

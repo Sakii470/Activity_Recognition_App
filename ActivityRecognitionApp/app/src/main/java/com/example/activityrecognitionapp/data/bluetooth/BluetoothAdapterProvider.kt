@@ -13,17 +13,12 @@ class BluetoothAdapterProvider @Inject constructor(
 ) {
 
     /**
-     * Zwraca instancję BluetoothAdapter.
-     *
-     * @return BluetoothAdapter? Instancja BluetoothAdapter lub null, jeśli Bluetooth nie jest dostępny.
+     * BluetoothAdapterProvider provides the BluetoothAdapter using the system service.
      */
     fun getBluetoothAdapter(): BluetoothAdapter? {
         val bluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
         return bluetoothManager?.adapter
     }
-
-
-
 
 
 }

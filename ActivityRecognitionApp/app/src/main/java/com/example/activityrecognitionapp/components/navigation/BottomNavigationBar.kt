@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.components
+package com.example.activityrecognitionapp.components.navigation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.material.icons.Icons

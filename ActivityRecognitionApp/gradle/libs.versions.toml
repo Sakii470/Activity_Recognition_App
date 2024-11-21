@@ -55,6 +55,7 @@ media3CommonKtx = "1.4.1"
 workRuntimeKtx = "2.10.0"
 hiltCommon = "1.2.0"
 firebaseComponents = "18.0.1"
+firebaseFirestoreKtx = "25.1.1"
 
 [plugins]
 # Plugins
@@ -121,3 +122,4 @@ retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 androidx-hilt-common = { group = "androidx.hilt", name = "hilt-common", version.ref = "hiltCommon" }
 firebase-components = { group = "com.google.firebase", name = "firebase-components", version.ref = "firebaseComponents" }
+firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestoreKtx" }

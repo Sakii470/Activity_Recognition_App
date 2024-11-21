@@ -52,7 +52,7 @@ fun LoginScreen(
              {
             navController.navigate("home") {
                 popUpTo("login") { inclusive = true }
-                Log.d("AppNavigation", "isLogged from LoginS creen ${uiLoginState.isLoggedIn}")
+                Log.d("AppNavigation", "isLogged from LoginS screen ${uiLoginState.isLoggedIn}")
             }
             viewModel.resetUserState()
         }
@@ -63,7 +63,7 @@ fun LoginScreen(
         state = uiLoginState,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
-        onLoginClick = viewModel::login,
+        onLoginClick = {viewModel.login(uiLoginState.userEmail, uiLoginState.userPassword)},
         onRegisterClick = { navController.navigate("signUp") },
         onForgotPasswordClick = { /* handle in forget password case */ }
     )

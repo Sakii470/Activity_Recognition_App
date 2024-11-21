@@ -124,7 +124,7 @@ class ActivityDataProcessor @Inject constructor() {
         }.forEach { aggregateDailyData(it, dataMap) }
 
         val sortedData = dateList.map { dataMap[it]!! }
-        val xAxisLabels = dateList.map { it.dayOfMonth.toString().padStart(2, '0') }
+        val xAxisLabels = dateList.map { it.format(DateTimeFormatter.ofPattern("dd.MM", Locale.getDefault())) }
 
         return Pair(sortedData, xAxisLabels)
     }

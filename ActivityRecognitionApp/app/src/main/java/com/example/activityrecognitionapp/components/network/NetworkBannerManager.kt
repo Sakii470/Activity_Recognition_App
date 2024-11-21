@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.components
+package com.example.activityrecognitionapp.components.network
 
 import android.util.Log
 import com.example.activityrecognitionapp.data.network.NetworkConnectivityObserver

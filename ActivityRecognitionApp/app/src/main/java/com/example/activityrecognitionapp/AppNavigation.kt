@@ -25,9 +25,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.activityrecognitionapp.components.BottomNavigationBar
-import com.example.activityrecognitionapp.components.NetworkBanner
-import com.example.activityrecognitionapp.components.TopBarWithMenu
+import com.example.activityrecognitionapp.components.navigation.BottomNavigationBar
+import com.example.activityrecognitionapp.components.network.NetworkBanner
+import com.example.activityrecognitionapp.components.navigation.TopBarWithMenu
 import com.example.activityrecognitionapp.presentation.screens.BluetoothScreen
 import com.example.activityrecognitionapp.presentation.screens.DataScreen
 import com.example.activityrecognitionapp.presentation.screens.HomeScreen

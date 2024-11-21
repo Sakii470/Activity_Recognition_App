@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -102,15 +101,16 @@ fun NormalTextComponent(
 }
 
 @Composable
-fun HeadingTextComponent (value: String,
-modifier: Modifier = Modifier,
-style: TextStyle = TextStyle(
-fontSize = 30.sp,
-fontWeight = FontWeight.Normal,
-fontStyle = FontStyle.Normal,
-color = MaterialTheme.colorScheme.onBackground
-),
-textAlign: TextAlign = TextAlign.Center
+fun HeadingTextComponent(
+    value: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = TextStyle(
+        fontSize = 30.sp,
+        fontWeight = FontWeight.Normal,
+        fontStyle = FontStyle.Normal,
+        color = MaterialTheme.colorScheme.onBackground
+    ),
+    textAlign: TextAlign = TextAlign.Center
 ) {
     Text(
         text = value,
@@ -126,20 +126,20 @@ textAlign: TextAlign = TextAlign.Center
 @Composable
 fun getTextFieldColors() = TextFieldDefaults.colors(
     focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-//    unfocusedLabelColor = GrayColor,
-//    focusedLabelColor = Primary,
-//    cursorColor = Primary,
     unfocusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
     unfocusedIndicatorColor = Color.Transparent,
     focusedIndicatorColor = Color.Transparent,
-//    unfocusedLeadingIconColor = Primary,
     focusedLeadingIconColor = LighterPrimary,
-    //focusedTextColor = MaterialTheme.colorScheme.onBackground,
-//    unfocusedTextColor = Primary
-)
+
+    )
 
 @Composable
-fun MyTextFieldComponent(labelValue: String, painterResource: Painter, value: String, onValueChange: (String) -> Unit) {
+fun MyTextFieldComponent(
+    labelValue: String,
+    painterResource: Painter,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
 
     val textValue = rememberSaveable { mutableStateOf("") }
 
@@ -164,7 +164,12 @@ fun MyTextFieldComponent(labelValue: String, painterResource: Painter, value: St
 }
 
 @Composable
-fun PasswordTextFieldComponent(labelValue: String, painterResource: Painter,value: String,onValueChange: (String) -> Unit) {
+fun PasswordTextFieldComponent(
+    labelValue: String,
+    painterResource: Painter,
+    value: String,
+    onValueChange: (String) -> Unit
+) {
 
     val password = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable {
@@ -204,9 +209,7 @@ fun PasswordTextFieldComponent(labelValue: String, painterResource: Painter,valu
 
             }
         },
-
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
-
         shape = RoundedCornerShape(10.dp),
     )
 }
@@ -233,10 +236,10 @@ fun ClickableTextComponent(
             .heightIn(min = 40.dp),
         style = TextStyle(
             fontSize = 21.sp,
-           // fontWeight = FontWeight.Bold,
+            // fontWeight = FontWeight.Bold,
             fontStyle = FontStyle.Normal,
             textAlign = TextAlign.Center,
-           // color = Color.White
+            // color = Color.White
         ),
         onClick = { offset ->
             annotatedString.getStringAnnotations(tag = clickableText, start = offset, end = offset)
@@ -250,7 +253,7 @@ fun ClickableTextComponent(
 }
 
 @Composable
-fun ButtonComponent(value: String, onButtonClick: () -> Unit, modifier: Modifier = Modifier ) {
+fun ButtonComponent(value: String, onButtonClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onButtonClick,
 
@@ -277,7 +280,7 @@ fun ButtonComponent(value: String, onButtonClick: () -> Unit, modifier: Modifier
                 fontWeight = FontWeight.Bold,
 
 
-            )
+                )
         }
     }
 }
@@ -306,12 +309,11 @@ fun DividerTextComponent() {
             color = MaterialTheme.colorScheme.primary,
             thickness = 1.dp
         )
-
     }
 }
 
 @Composable
-fun UnderLinedTextComponent(value: String, onButtonClick: () -> Unit ) {
+fun UnderLinedTextComponent(value: String, onButtonClick: () -> Unit) {
     Text(
         text = value,
         modifier = Modifier
@@ -325,17 +327,6 @@ fun UnderLinedTextComponent(value: String, onButtonClick: () -> Unit ) {
         textAlign = TextAlign.Center,
         textDecoration = TextDecoration.Underline
     )
-}
-
-@Composable
-fun LoadingComponent() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Loading...")
-    }
 }
 
 @Composable
@@ -370,40 +361,6 @@ fun BluetoothDeviceList(
         }
     }
 }
-
-    @Composable
-    fun NotificationMessage(
-        message: String,
-        //iconId: Int
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = MaterialTheme.shapes.medium,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(16.dp)
-            ) {
-//                Icon(
-//                    painter = painterResource(id = iconId),
-//                    contentDescription = null,
-//                    tint = MaterialTheme.colorScheme.primary,
-//                    modifier = Modifier.size(24.dp)
-//                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-    }
-
 
 @Composable
 fun ActivityBarChart(

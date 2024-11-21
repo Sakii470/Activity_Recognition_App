@@ -9,7 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.ViewModel
 import com.example.activityrecognitionapp.data.model.Session
-import com.example.activityrecognitionapp.data.network.SupabaseClient
+import com.example.activityrecognitionapp.data.network.SupabaseApiClient
 import dagger.hilt.android.qualifiers.ApplicationContext
 import io.github.jan.supabase.gotrue.gotrue
 import kotlinx.coroutines.flow.Flow
@@ -65,7 +65,7 @@ class TokenRepository @Inject constructor(
 
     // Pobieranie identyfikatora użytkownika
     fun getUserId(): String? {
-        return SupabaseClient.Client.gotrue.currentSessionOrNull()?.user?.id
+        return SupabaseApiClient.SupabaseClient.Client.gotrue.currentSessionOrNull()?.user?.id
     }
 
     // Funkcje do zarządzania sesją

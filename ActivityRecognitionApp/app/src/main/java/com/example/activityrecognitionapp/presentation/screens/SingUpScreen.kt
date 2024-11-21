@@ -42,7 +42,7 @@ fun SignUpScreen(
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onNameChange = viewModel::onNameChange,
-        onSignUpClick = viewModel::signUp,
+        onSignUpClick = {viewModel.signUp(loginUiState.userName,loginUiState.userEmail,loginUiState.userPassword)},
         onLoginClick = { navController.navigate("login") }
     )
 
@@ -104,10 +104,9 @@ fun SignUpScreenContent(
                 onButtonClick = onSignUpClick
             )
 
-
             DividerTextComponent()
             // Clickable text for users to navigate to the login screen if they already have an account
-            ClickableTextComponent(normalText = "Already have an account? ",
+            ClickableTextComponent(normalText = "",
                 clickableText = stringResource(
                     id = R.string.login
                 ),

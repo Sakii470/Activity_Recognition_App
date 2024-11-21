@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.components
+package com.example.activityrecognitionapp.components.navigation
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material.icons.Icons

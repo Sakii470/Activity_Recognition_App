@@ -42,7 +42,6 @@ class DataScreenViewModel @Inject constructor(
 
     init {
         fetchUserActivities()
-
     }
 
     private fun fetchUserActivities() {
@@ -110,6 +109,8 @@ class DataScreenViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+
+
     }
 
     // Publicne funkcje do przygotowania danych

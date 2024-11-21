@@ -46,6 +46,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
     var showDialog by remember { mutableStateOf(false) }
 
 
+
     // Check Bluetooth connection state
     LaunchedEffect(bluetoothUiState.isConnected) {
         if (!bluetoothUiState.isConnected) {
@@ -83,7 +84,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                         )
                     } else {
                         Text(
-                            text = stringResource(id = R.string.no_connect_ble_dev) ,
+                            text = stringResource(id = R.string.no_connect_ble_dev),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
@@ -93,12 +94,15 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
 
             Spacer(modifier = Modifier.height(35.dp))
 
-            ActivityBarChartWithLegend(
-                standingPercentage = homeUiState.standPercentage,
-                walkingPercentage = homeUiState.walkPercentage,
-                runningPercentage = homeUiState.runPercentage,
-                modifier = Modifier.fillMaxWidth()
-            )
+                ActivityBarChartWithLegend(
+                    standingPercentage = homeUiState.standPercentage,
+                    walkingPercentage = homeUiState.walkPercentage,
+                    runningPercentage = homeUiState.runPercentage,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // You can display a placeholder or nothing
+                Spacer(modifier = Modifier.height(200.dp))
 
 
             Spacer(modifier = Modifier.height(50.dp))
@@ -111,37 +115,37 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Start Icon
                 Icon(
-                    painter = painterResource(id = R.drawable.start), // Replace with your desired icon
-                    contentDescription = "Home Icon",
-                    //tint = MaterialTheme.colorScheme.primary,
+                    painter = painterResource(id = R.drawable.start),
+                    contentDescription = "Start Icon",
                     modifier = Modifier
                         .size(70.dp)
-                        .clickable {  },
+                        .clickable {
+                            viewModel.startChart()
+                        },
                     tint = Color.Unspecified
                 )
 
+                // Pause/Reset Icon
                 Icon(
-                    painter = painterResource(id = R.drawable.pause), // Replace with your desired icon
-                    contentDescription = "Settings Icon",
-                    //tint = MaterialTheme.colorScheme.primary,
+                    painter = painterResource(id = R.drawable.pause),
+                    contentDescription = "Pause/Reset Icon",
                     modifier = Modifier
                         .size(70.dp)
-                        .clickable {  },
+                        .clickable {
+                          viewModel.stopChart()
+                        },
                     tint = Color.Unspecified
                 )
             }
         }
     }
 
-
-
-
     // Display AlertDialog if not connected to a Bluetooth device
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-
             title = {
                 Text(
                     text = "No Connection",
@@ -189,6 +193,152 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
         )
     }
 }
+
+
+//
+//    // Check Bluetooth connection state
+//    LaunchedEffect(bluetoothUiState.isConnected) {
+//        if (!bluetoothUiState.isConnected) {
+//            showDialog = true
+//        }
+//    }
+//
+//    Scaffold { innerPadding ->
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(innerPadding),
+//            horizontalAlignment = Alignment.CenterHorizontally,
+//            verticalArrangement = Arrangement.Top
+//        ) {
+//            Surface(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(50.dp)
+//                    .padding(innerPadding)
+//                    .padding(horizontal = 8.dp)
+//                    .clip(MaterialTheme.shapes.medium), // Rounded corners
+//                shape = MaterialTheme.shapes.medium,
+//                color = MaterialTheme.colorScheme.tertiaryContainer
+//            ) {
+//                Box(
+//                    modifier = Modifier.fillMaxSize(),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    if (bluetoothUiState.isConnected) {
+//                        Text(
+//                            text = "${bluetoothUiState.dataFromBluetooth}",
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            color = MaterialTheme.colorScheme.onBackground
+//                        )
+//                    } else {
+//                        Text(
+//                            text = stringResource(id = R.string.no_connect_ble_dev) ,
+//                            style = MaterialTheme.typography.bodyMedium,
+//                            color = MaterialTheme.colorScheme.onBackground
+//                        )
+//                    }
+//                }
+//            }
+//
+//            Spacer(modifier = Modifier.height(35.dp))
+//
+//            ActivityBarChartWithLegend(
+//                standingPercentage = homeUiState.standPercentage,
+//                walkingPercentage = homeUiState.walkPercentage,
+//                runningPercentage = homeUiState.runPercentage,
+//                modifier = Modifier.fillMaxWidth()
+//            )
+//
+//
+//            Spacer(modifier = Modifier.height(50.dp))
+//
+//            // Row with two icons
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                horizontalArrangement = Arrangement.SpaceEvenly,
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Icon(
+//                    painter = painterResource(id = R.drawable.start), // Replace with your desired icon
+//                    contentDescription = "Home Icon",
+//                    //tint = MaterialTheme.colorScheme.primary,
+//                    modifier = Modifier
+//                        .size(70.dp)
+//                        .clickable { },
+//                    tint = Color.Unspecified
+//                )
+//
+//                Icon(
+//                    painter = painterResource(id = R.drawable.pause), // Replace with your desired icon
+//                    contentDescription = "Settings Icon",
+//                    //tint = MaterialTheme.colorScheme.primary,
+//                    modifier = Modifier
+//                        .size(70.dp)
+//                        .clickable { },
+//                    tint = Color.Unspecified
+//                )
+//            }
+//        }
+//    }
+//
+//
+//
+//
+//    // Display AlertDialog if not connected to a Bluetooth device
+//    if (showDialog) {
+//        AlertDialog(
+//            onDismissRequest = { showDialog = false },
+//
+//            title = {
+//                Text(
+//                    text = "No Connection",
+//                    style = MaterialTheme.typography.titleLarge,
+//                    color = MaterialTheme.colorScheme.onPrimaryContainer
+//                )
+//            },
+//            text = {
+//                Text(
+//                    text = stringResource(id = R.string.bluetooth_warnning),
+//                    style = MaterialTheme.typography.bodyMedium,
+//                    color = MaterialTheme.colorScheme.onSurfaceVariant
+//                )
+//            },
+//            confirmButton = {
+//                TextButton(
+//                    onClick = {
+//                        showDialog = false
+//                        navController.navigate("bluetooth")
+//                    },
+//                    modifier = Modifier.padding(horizontal = 8.dp)
+//                ) {
+//                    Text(
+//                        text = "Connect",
+//                        style = MaterialTheme.typography.labelLarge,
+//                        color = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//            },
+//            dismissButton = {
+//                TextButton(
+//                    onClick = { showDialog = false },
+//                    modifier = Modifier.padding(horizontal = 8.dp)
+//                ) {
+//                    Text(
+//                        text = "Cancel",
+//                        style = MaterialTheme.typography.labelLarge,
+//                        color = MaterialTheme.colorScheme.error
+//                    )
+//                }
+//            },
+//            containerColor = MaterialTheme.colorScheme.surface,
+//            tonalElevation = 8.dp,
+//            modifier = Modifier.padding(horizontal = 16.dp)
+//        )
+//    }
+//}
 
 
 

@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.components
+package com.example.activityrecognitionapp.components.navigation
 
 import androidx.compose.ui.graphics.vector.ImageVector
 
@@ -6,5 +6,4 @@ data class BottomNavItem(
     val label: String,
     val icon: ImageVector,
     val route: String
-
 )

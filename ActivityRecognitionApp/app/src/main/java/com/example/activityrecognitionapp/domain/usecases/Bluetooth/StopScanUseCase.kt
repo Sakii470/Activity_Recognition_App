@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.domain.usecase.Bluetooth
+package com.example.activityrecognitionapp.domain.usecases.Bluetooth
 
 import com.example.activityrecognitionapp.domain.repository.BluetoothRepository
 import javax.inject.Inject

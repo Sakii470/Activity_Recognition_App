@@ -37,7 +37,16 @@ import com.example.activityrecognitionapp.domain.BluetoothDevice
 import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 import com.example.activityrecognitionapp.presentation.states.BluetoothUiState
 
-
+/**
+ * Composable function representing the Device Screen.
+ *
+ * @param state The current UI state of Bluetooth.
+ * @param connectedDevice The currently connected Bluetooth device, if any.
+ * @param onStartScan Callback to initiate device scanning.
+ * @param onDisconnect Callback to disconnect from the current device.
+ * @param onDeviceClick Callback when a device is clicked from the list.
+ * @param contentPadding Padding values for the content.
+ */
 @Composable
 fun DeviceScreen(
     state: BluetoothUiState,
@@ -45,37 +54,38 @@ fun DeviceScreen(
     onStartScan: () -> Unit,
     onDisconnect: () -> Unit,
     onDeviceClick: (BluetoothDevice) -> Unit,
-    //enableBluetooth: () -> Unit,
-    contentPadding: PaddingValues // Dodaj parametr contentPadding
-
+    contentPadding: PaddingValues
 ) {
-
     DeviceScreenContent(
         state = state,
         connectedDevice = connectedDevice,
         onStartScan = onStartScan,
         onDisconnect = onDisconnect,
         onDeviceClick = onDeviceClick,
-       // enableBluetooth = enableBluetooth
-
-
     )
 }
 
+/**
+ * Composable function that builds the content of the Device Screen.
+ *
+ * @param state The current UI state of Bluetooth.
+ * @param connectedDevice The currently connected Bluetooth device, if any.
+ * @param onStartScan Callback to initiate device scanning.
+ * @param onDisconnect Callback to disconnect from the current device.
+ * @param onDeviceClick Callback when a device is clicked from the list.
+ */
 @Composable
 fun DeviceScreenContent(
     state: BluetoothUiState,
     connectedDevice: BluetoothDeviceDomain?,
     onStartScan: () -> Unit,
     onDisconnect: () -> Unit,
-    onDeviceClick: (BluetoothDevice) -> Unit,
-    //enableBluetooth: ()  -> Unit
+    onDeviceClick: (BluetoothDevice) -> Unit
 ) {
-
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Pokazanie wskaźnika łączenia, jeśli aplikacja się łączy
+        // Show a connecting indicator if the app is in the process of connecting
         if (state.isConnecting) {
             Row(
                 modifier = Modifier
@@ -89,34 +99,32 @@ fun DeviceScreenContent(
             }
         }
 
-        // Pokazanie statusu połączenia, jeśli aplikacja jest połączona
+        // Display connection status if the app is connected and not currently connecting
         if (state.isConnected && !state.isConnecting) {
-            if (connectedDevice != null) {
+            connectedDevice?.let { device ->
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally // Wyśrodkowanie horyzontalne
+                    horizontalAlignment = Alignment.CenterHorizontally // Center horizontally
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Connected with ${connectedDevice.name}",
+                            text = "Connected with ${device.name}",
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier
                                 .padding(vertical = 8.dp)
-                                .weight(1f),
+                                .weight(1f), // Take up remaining horizontal space
                             textAlign = TextAlign.Center
                         )
                         IconButton(
-                            onClick = onDisconnect, // Wywołanie funkcji obsługi kliknięcia
+                            onClick = onDisconnect, // Handle disconnect button click
                             modifier = Modifier
                                 .padding(
-                                    0.dp,
-                                    5.dp,
-                                    10.dp,
-                                    0.dp
-                                ) // Dodatkowy padding, aby oddzielić od krawędzi
+                                    top = 5.dp,
+                                    end = 10.dp
+                                ) // Additional padding to separate from edges
                                 .size(40.dp)
                         ) {
                             Icon(
@@ -130,21 +138,23 @@ fun DeviceScreenContent(
             }
         }
 
+        // Heading for the Devices section
         HeadingTextComponent(
             value = stringResource(id = R.string.devices),
-            modifier = Modifier.padding(10.dp, 10.dp, 0.dp, 0.1.dp),
+            modifier = Modifier.padding(start = 10.dp, top = 10.dp, end = 0.dp, bottom = 0.1.dp),
             textAlign = TextAlign.Left,
         )
 
+        // Subheading or description for adding devices
         NormalTextComponent(
             value = stringResource(id = R.string.add_devices),
-            modifier = Modifier.padding(10.dp, 0.dp, 0.dp, 10.dp),
+            modifier = Modifier.padding(start = 10.dp, top = 0.dp, end = 0.dp, bottom = 10.dp),
             style = TextStyle(fontSize = 15.sp),
             textAlign = TextAlign.Left
         )
 
+        // Scaffold to structure the main content area
         Scaffold(
-            // containerColor = MaterialTheme.colorScheme.tertiaryContainer
         ) { innerPadding ->
             Box(
                 modifier = Modifier
@@ -155,7 +165,7 @@ fun DeviceScreenContent(
                 Surface(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(MaterialTheme.shapes.medium), // Zaokrąglenie rogów
+                        .clip(MaterialTheme.shapes.medium), // Rounded corners
                     shape = MaterialTheme.shapes.medium,
                     color = MaterialTheme.colorScheme.tertiaryContainer
                 ) {
@@ -165,31 +175,30 @@ fun DeviceScreenContent(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
 
+                        // Button to start scanning for devices
                         IconButton(
-                            onClick = onStartScan, // Wywołanie funkcji obsługi kliknięcia
+                            onClick = onStartScan, // Handle scan button click
                             modifier = Modifier
                                 .padding(
-                                    0.dp,
-                                    20.dp,
-                                    0.dp,
-                                    2.dp
-                                ) // Dodatkowy padding, aby oddzielić od krawędzi
+                                    top = 20.dp,
+                                    bottom = 2.dp
+                                ) // Additional padding to separate from edges
                                 .size(60.dp)
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.add),
                                 contentDescription = "Add Device",
                                 tint = MaterialTheme.colorScheme.tertiary
-
                             )
                         }
-                        Spacer(modifier = Modifier.height(8.dp)) // Dodaje odstęp między ikoną a tekstem
+                        Spacer(modifier = Modifier.height(8.dp)) // Space between icon and text
                         Text(
                             text = "Add Device",
                             color = MaterialTheme.colorScheme.onBackground,
                             style = MaterialTheme.typography.bodyMedium
                         )
 
+                        // List of scanned Bluetooth devices
                         BluetoothDeviceList(
                             scannedDevices = state.scannedDevices,
                             onClick = onDeviceClick,
@@ -203,23 +212,3 @@ fun DeviceScreenContent(
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

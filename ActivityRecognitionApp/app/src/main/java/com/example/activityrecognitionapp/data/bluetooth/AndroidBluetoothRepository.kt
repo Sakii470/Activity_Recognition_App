@@ -1,27 +1,5 @@
 package com.example.activityrecognitionapp.data.bluetooth
 
-/**
- * AndroidBluetoothRepository is a class responsible for managing Bluetooth Low Energy (BLE) operations
- * within an Android application. It implements the BluetoothRepository interface and provides functionality
- * for discovering, connecting, and communicating with BLE devices. This class handles various tasks,
- * including scanning for devices, connecting to GATT servers, discovering available services and characteristics,
- * and enabling notifications from a BLE device.
- *
- * Key features include:
- * - **Device Discovery**: Scans for nearby BLE devices and updates the list of discovered devices.
- * - **Connection Management**: Connects to and manages connections with BLE devices, supporting connection state changes.
- * - **Data Transfer**: Reads data from BLE characteristics and enables notifications for real-time data updates.
- * - **Error Handling**: Provides shared flows to manage and emit errors related to BLE operations.
- *
- * The class makes use of coroutines to handle asynchronous tasks and channels for transferring connection results.
- * It also utilizes Android's BluetoothManager and BluetoothGatt classes to manage the BLE connection lifecycle,
- * ensuring seamless and efficient Bluetooth communication.
- *
- * This controller is designed for BLE interactions specifically and requires Android permissions
- * for Bluetooth operations such as scanning and connecting.
- */
-
-
 import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
@@ -63,36 +41,60 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+/**
+ * Manages Bluetooth Low Energy (BLE) operations such as scanning, connecting, and data communication.
+ * Implements the [BluetoothRepository] interface to provide BLE functionalities within the application.
+ *
+ * This repository handles scanning for BLE devices, managing connections, discovering services and characteristics,
+ * and enabling notifications for real-time data updates. It also monitors Bluetooth state changes and
+ * emits relevant status updates and errors through [StateFlow] and [SharedFlow].
+ *
+ * @param context The application context used for accessing system services and registering receivers.
+ * @param bluetoothAdapterProvider Provides an instance of [BluetoothAdapter] for BLE operations.
+ */
 @SuppressLint("MissingPermission")
 class AndroidBluetoothRepository(
     private val context: Context,
     private val bluetoothAdapterProvider: BluetoothAdapterProvider,
 ) : BluetoothRepository {
 
-
+    // BluetoothAdapter used to perform BLE operations
     private val bluetoothAdapter: BluetoothAdapter? = bluetoothAdapterProvider.getBluetoothAdapter()
+
+    // BluetoothGatt instance for managing GATT connections
     private var bluetoothGatt: BluetoothGatt? = null
 
+    // UUIDs for the specific BLE service and characteristic to interact with
     private val uuidService: UUID = UUID.fromString("020c6211-64f6-4e6d-82e8-c2c1391f75fa")
     private val uuidCharacteristic: UUID = UUID.fromString("020c6213-64f6-4e6d-82e8-c2c1391f75fa")
     private val CCCD_DESCRIPTOR_UUID: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
 
+    // StateFlow to track connection status
     private val _isConnected = MutableStateFlow(false)
     override val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
+    // StateFlow to track if Bluetooth is enabled
     private val _isBluetoothEnabled = MutableStateFlow(bluetoothAdapter?.isEnabled == true)
     override val isBluetoothEnabled: StateFlow<Boolean> = _isBluetoothEnabled.asStateFlow()
 
+    // StateFlow to hold the list of scanned BLE devices
     private val _scannedDevices = MutableStateFlow<List<BluetoothDeviceDomain>>(emptyList())
     override val scannedDevices: StateFlow<List<BluetoothDeviceDomain>> = _scannedDevices.asStateFlow()
 
+    // SharedFlow to emit error messages related to BLE operations
     private val _errors = MutableSharedFlow<String>()
     override val errors: SharedFlow<String> = _errors.asSharedFlow()
 
+    // Channel to handle connection results asynchronously
     private val connectionResultChannel = Channel<ConnectionResult>(Channel.BUFFERED)
+
+    // CoroutineScope for managing asynchronous tasks
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    // Scan Callback
+    /**
+     * Callback for handling BLE scan results.
+     * Updates the list of scanned devices when new devices are found.
+     */
     private val leScanCallback = object : ScanCallback() {
         @RequiresApi(Build.VERSION_CODES.O)
         override fun onScanResult(callbackType: Int, result: ScanResult) {
@@ -115,7 +117,10 @@ class AndroidBluetoothRepository(
         }
     }
 
-    // BroadcastReceiver to monitor Bluetooth state
+    /**
+     * BroadcastReceiver to monitor Bluetooth state changes such as enabling/disabling and device connections.
+     * Updates the relevant StateFlows based on the received actions.
+     */
     private val bluetoothStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             val action = intent?.action
@@ -135,7 +140,7 @@ class AndroidBluetoothRepository(
     }
 
     init {
-        // Register BluetoothStateReceiver
+        // Register the BroadcastReceiver to listen for Bluetooth state changes
         val intentFilter = IntentFilter().apply {
             addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
             addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
@@ -144,6 +149,11 @@ class AndroidBluetoothRepository(
         context.registerReceiver(bluetoothStateReceiver, intentFilter)
     }
 
+    /**
+     * Initiates BLE scanning for nearby devices.
+     * Emits an error if the required BLUETOOTH_SCAN permission is missing.
+     * Automatically stops scanning after 10 seconds.
+     */
     override fun startScan() {
         if (!hasPermission(Manifest.permission.BLUETOOTH_SCAN)) {
             coroutineScope.launch {
@@ -151,15 +161,19 @@ class AndroidBluetoothRepository(
             }
             return
         }
-        //reset scannedDevice list
+        // Reset the list of scanned devices before starting a new scan
         _scannedDevices.value = emptyList()
         bluetoothAdapter?.bluetoothLeScanner?.startScan(leScanCallback)
         coroutineScope.launch {
-            delay(10000) // Scan for 10 seconds
+            delay(10000) // Scan duration: 10 seconds
             stopScan()
         }
     }
 
+    /**
+     * Stops the ongoing BLE scan.
+     * Emits an error if the required BLUETOOTH_SCAN permission is missing.
+     */
     override fun stopScan() {
         if (!hasPermission(Manifest.permission.BLUETOOTH_SCAN)) {
             coroutineScope.launch {
@@ -170,6 +184,12 @@ class AndroidBluetoothRepository(
         bluetoothAdapter?.bluetoothLeScanner?.stopScan(leScanCallback)
     }
 
+    /**
+     * Connects to a specified BLE device and returns a Flow emitting connection results.
+     *
+     * @param device The [BluetoothDeviceDomain] representing the device to connect to.
+     * @return A [Flow] emitting [ConnectionResult] indicating the outcome of the connection attempt.
+     */
     override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> = flow {
         if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
             throw SecurityException("Missing BLUETOOTH_CONNECT permission.")
@@ -186,11 +206,21 @@ class AndroidBluetoothRepository(
         } ?: emit(ConnectionResult.Error("BluetoothAdapter not initialized"))
     }
 
+    /**
+     * Disconnects from the currently connected BLE device.
+     * The actual closure of the GATT connection is handled in the callback.
+     */
     override fun disconnect() {
         bluetoothGatt?.disconnect()
-        // Do not call close() immediately; wait for onConnectionStateChange
+        // Do not call close() immediately; wait for onConnectionStateChange callback
     }
 
+    /**
+     * Enables Bluetooth on the device.
+     * If Bluetooth is already enabled, it returns true. Otherwise, it prompts the user to enable Bluetooth.
+     *
+     * @return `true` if Bluetooth is already enabled, `false` otherwise.
+     */
     override fun enableBluetooth(): Boolean {
         return if (bluetoothAdapter?.isEnabled == true) {
             // Bluetooth is already enabled
@@ -204,19 +234,28 @@ class AndroidBluetoothRepository(
         }
     }
 
-
-
+    /**
+     * Checks if Bluetooth is currently enabled.
+     *
+     * @return `true` if Bluetooth is enabled, `false` otherwise.
+     */
     override fun isBluetoothEnabled(): Boolean {
         return _isBluetoothEnabled.value
     }
 
+    /**
+     * Clears any existing error messages by emitting an empty string.
+     */
     override fun clearErrorMessage() {
         coroutineScope.launch {
             _errors.emit("")
         }
     }
 
-    // GATT Callback
+    /**
+     * Callback for handling GATT events such as connection state changes, service discoveries,
+     * and characteristic updates.
+     */
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             when (newState) {
@@ -269,10 +308,22 @@ class AndroidBluetoothRepository(
         }
     }
 
+    /**
+     * Checks if the specified permission is granted.
+     *
+     * @param permission The permission to check (e.g., Manifest.permission.BLUETOOTH_SCAN).
+     * @return `true` if the permission is granted, `false` otherwise.
+     */
     private fun hasPermission(permission: String): Boolean {
         return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * Converts a [BluetoothDevice] to a [BluetoothDeviceDomain] model.
+     *
+     * @param rssi The signal strength of the device, optional.
+     * @return A [BluetoothDeviceDomain] representing the BLE device.
+     */
     private fun BluetoothDevice.toBluetoothDeviceDomain(rssi: Int? = null): BluetoothDeviceDomain {
         return BluetoothDeviceDomain(
             name = this.name ?: "Unknown",
@@ -281,6 +332,11 @@ class AndroidBluetoothRepository(
         )
     }
 
+    /**
+     * Enables notifications for a specific GATT characteristic.
+     *
+     * @param characteristic The [BluetoothGattCharacteristic] to enable notifications for.
+     */
     private fun enableNotification(characteristic: BluetoothGattCharacteristic) {
         val cccdUuid = CCCD_DESCRIPTOR_UUID
         val payload = when {
@@ -295,6 +351,13 @@ class AndroidBluetoothRepository(
         }
     }
 
+    /**
+     * Finds a specific GATT characteristic within a given service.
+     *
+     * @param serviceUUID The UUID of the BLE service.
+     * @param characteristicUUID The UUID of the BLE characteristic.
+     * @return The [BluetoothGattCharacteristic] if found, `null` otherwise.
+     */
     private fun findCharacteristic(
         serviceUUID: UUID,
         characteristicUUID: UUID
@@ -306,326 +369,3 @@ class AndroidBluetoothRepository(
         }
     }
 }
-
-
-
-
-//    private val bluetoothAdapter = bluetoothAdapterProvider.getBluetoothAdapter()
-//
-////    private val bluetoothManager by lazy {
-////        context.getSystemService(BluetoothManager::class.java)
-////    }
-////    private val bluetoothAdapter by lazy {
-////        bluetoothManager?.adapter
-////    }
-//private var bluetoothGatt: BluetoothGatt? = null
-//
-//    private val uuidService: UUID = UUID.fromString("020c6211-64f6-4e6d-82e8-c2c1391f75fa")
-//    private val uuidCharacteristic: UUID = UUID.fromString("020c6213-64f6-4e6d-82e8-c2c1391f75fa")
-//    private val CCCD_DESCRIPTOR_UUID: String = "00002902-0000-1000-8000-00805f9b34fb"
-//
-//    private val _isConnected = MutableStateFlow(false)
-//    override val isConnected: StateFlow<Boolean>
-//        get() = _isConnected.asStateFlow()
-//
-//    private val _isBluetoothEnabled = MutableStateFlow(bluetoothAdapter?.isEnabled == true)
-//    override val isBluetoothEnabled: StateFlow<Boolean>
-//        get() = _isBluetoothEnabled.asStateFlow()
-//
-//    private val _scannedDevices = MutableStateFlow<List<BluetoothDeviceDomain>>(emptyList())
-//    override val scannedDevices: StateFlow<List<BluetoothDeviceDomain>>
-//        get() = _scannedDevices.asStateFlow()
-//
-//    private val _errors = MutableSharedFlow<String>()
-//    override val errors: SharedFlow<String>
-//        get() = _errors.asSharedFlow()
-//
-//    private val connectionResultChannel = Channel<ConnectionResult>(Channel.BUFFERED)
-//
-//    private val coroutineScope = CoroutineScope(Dispatchers.Default)
-//
-//    // Scan Callback
-//    private val leScanCallback = object : ScanCallback() {
-//        @RequiresApi(Build.VERSION_CODES.O)
-//        override fun onScanResult(callbackType: Int, result: ScanResult) {
-//            val device = result.device
-//            val rssi = result.rssi
-//
-//            Log.d(
-//                "BLE Scan",
-//                "Znaleziono urządzenie: ${device.name} - ${device.address} RSSI: $rssi"
-//            )
-//
-//            if (device.name != null && device.name.isNotEmpty()) {
-//                val bluetoothDeviceDomain = device.toBluetoothDeviceDomain(rssi)
-//                Log.d(
-//                    "BLE Scan",
-//                    "Konwertowano urządzenie: ${bluetoothDeviceDomain.name} - ${bluetoothDeviceDomain.address}"
-//                )
-//
-//                _scannedDevices.update { devices ->
-//                    if (devices.any { it.address == bluetoothDeviceDomain.address }) {
-//                        Log.d(
-//                            "BLE Scan",
-//                            "Urządzenie już istnieje na liście: ${bluetoothDeviceDomain.address}"
-//                        )
-//                        devices
-//                    } else {
-//                        Log.d(
-//                            "BLE Scan",
-//                            "Dodano urządzenie do listy: ${bluetoothDeviceDomain.name} - ${bluetoothDeviceDomain.address}"
-//                        )
-//                        devices + bluetoothDeviceDomain
-//                    }
-//                }
-//
-//                Log.d("BLE Scan", "Aktualna lista urządzeń: ${_scannedDevices.value}")
-//            }
-//        }
-//    }
-//
-//    // BroadcastReceiver do monitorowania stanu Bluetooth
-//    private val bluetoothStateReceiver = BluetoothStateReceiver(
-//        onBluetoothStateChanged = { isEnabled ->
-//            _isBluetoothEnabled.update { isEnabled }
-//        },
-//        onConnectionStateChanged = { isConnected, device ->
-//            _isConnected.update { isConnected }
-//            // Możesz dodać dodatkową logikę tutaj, jeśli potrzebujesz
-//        }
-//    )
-//
-//    init {
-//        // Rejestracja BluetoothStateReceiver
-//        val intentFilter = IntentFilter().apply {
-//            addAction(BluetoothAdapter.ACTION_STATE_CHANGED)
-//            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-//            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-//        }
-//        context.registerReceiver(bluetoothStateReceiver, intentFilter)
-//    }
-//
-//    override fun startScan() {
-//        if (!hasPermission(Manifest.permission.BLUETOOTH_SCAN)) {
-//            coroutineScope.launch {
-//                _errors.emit("Missing BLUETOOTH_SCAN permission.")
-//            }
-//            return
-//        }
-//        bluetoothAdapter?.bluetoothLeScanner?.startScan(leScanCallback)
-//        coroutineScope.launch {
-//            delay(10000)
-//            stopScan()
-//        }
-//    }
-//
-//    override fun stopScan() {
-//        if (!hasPermission(Manifest.permission.BLUETOOTH_SCAN)) {
-//            coroutineScope.launch {
-//                _errors.emit("Missing BLUETOOTH_SCAN permission.")
-//            }
-//            return
-//        }
-//        bluetoothAdapter?.bluetoothLeScanner?.stopScan(leScanCallback)
-//    }
-//
-//    // Odbiornik do znalezionych urządzeń
-//    private val foundDeviceReceiver = object : BroadcastReceiver() {
-//        override fun onReceive(context: Context?, intent: Intent?) {
-//            val device: BluetoothDevice? = intent?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-//            device?.let {
-//                if (it.name != null && it.name.isNotEmpty()) {
-//                    val bluetoothDeviceDomain = it.toBluetoothDeviceDomain(rssi = null)
-//                    _scannedDevices.update { devices ->
-//                        if (devices.any { d -> d.address == bluetoothDeviceDomain.address }) {
-//                            devices
-//                        } else {
-//                            devices + bluetoothDeviceDomain
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//
-//    // GATT Callback
-//    private val gattCallback = object : BluetoothGattCallback() {
-//        override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
-//            if (status == BluetoothGatt.GATT_SUCCESS && newState == BluetoothProfile.STATE_CONNECTED) {
-//                Log.d("BluetoothRepository", "Connected to GATT server.")
-//                gatt.discoverServices()
-//            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-//                Log.d("BluetoothRepository", "Disconnected from GATT server.")
-//                connectionResultChannel.trySend(ConnectionResult.Error("Disconnected"))
-//                gatt.close()
-//                _isConnected.update { false }
-//            } else {
-//                Log.d("BluetoothRepository", "Connection failed with status $status.")
-//                connectionResultChannel.trySend(ConnectionResult.Error("Connection failed. Status: $status"))
-//                gatt.close()
-//                _isConnected.update { false }
-//            }
-//        }
-//
-//
-//
-//        override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-//            if (status == BluetoothGatt.GATT_SUCCESS) {
-//                Log.d("BluetoothRepository", "Services discovered.")
-//                // Możesz tutaj wyszukać i skonfigurować usługi oraz charakterystyki
-//                val characteristic =
-//                    findCharacteristics(uuidService.toString(), uuidCharacteristic.toString())
-//                if (characteristic != null) {
-//                    enableNotification(characteristic)
-//                } else {
-//                    connectionResultChannel.trySend(ConnectionResult.Error("Characteristic not found."))
-//                }
-//            } else {
-//                connectionResultChannel.trySend(ConnectionResult.Error("Service discovery failed with status $status."))
-//            }
-//        }
-//
-//        override fun onCharacteristicChanged(
-//            gatt: BluetoothGatt,
-//            characteristic: BluetoothGattCharacteristic,
-//        ) {
-//            if (characteristic.uuid == uuidCharacteristic) {
-//                val dataFromBluetooth = characteristic.value.decodeToString()
-//                Log.d("BluetoothRepository", "Received data: $dataFromBluetooth")
-//                connectionResultChannel.trySend(
-//                    ConnectionResult.ConnectionEstablished(
-//                        dataFromBluetooth,
-//                        gatt.device.toBluetoothDeviceDomain()
-//                    )
-//                )
-//            }
-//        }
-//
-//        override fun onMtuChanged(gatt: BluetoothGatt, mtu: Int, status: Int) {
-//            super.onMtuChanged(gatt, mtu, status)
-//            Log.d("BluetoothRepository", "MTU changed to $mtu with status $status")
-//        }
-//    }
-//
-//    override fun connectToDevice(device: BluetoothDeviceDomain): Flow<ConnectionResult> = flow {
-//        if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
-//            throw SecurityException("Missing BLUETOOTH_CONNECT permission.")
-//        }
-//
-//        bluetoothAdapter?.let { adapter ->
-//            try {
-//                val bluetoothDevice = adapter.getRemoteDevice(device.address)
-//                bluetoothGatt = bluetoothDevice.connectGatt(context, false, gattCallback)
-//
-//                emitAll(connectionResultChannel.receiveAsFlow())
-//            } catch (e: IllegalArgumentException) {
-//                emit(ConnectionResult.Error("Device not found with provided address."))
-//            }
-//        } ?: emit(ConnectionResult.Error("BluetoothAdapter not initialized"))
-//    }
-//
-//    override fun closeConnection() {
-//        bluetoothGatt?.disconnect()
-////        bluetoothGatt?.close()
-////        bluetoothGatt = null
-////        _isConnected.update { false }
-//    }
-//
-//    // Pomocnicze funkcje
-//    private fun hasPermission(permission: String): Boolean {
-//        return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-//    }
-//
-//    private fun BluetoothDevice.toBluetoothDeviceDomain(rssi: Int?): BluetoothDeviceDomain {
-//        return BluetoothDeviceDomain(
-//            name = this.name ?: "Unknown",
-//            address = this.address,
-//            signalStrength = rssi
-//        )
-//    }
-//
-//    private fun enableNotification(characteristic: BluetoothGattCharacteristic) {
-//        val cccdUuid = UUID.fromString(CCCD_DESCRIPTOR_UUID)
-//        val payload = when {
-//            characteristic.isIndicatable() -> BluetoothGattDescriptor.ENABLE_INDICATION_VALUE
-//            characteristic.isNotifiable() -> BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-//            else -> return
-//        }
-//        characteristic.getDescriptor(cccdUuid)?.let { cccdDescriptor ->
-//            bluetoothGatt?.setCharacteristicNotification(characteristic, true)
-//            cccdDescriptor.value = payload
-//            bluetoothGatt?.writeDescriptor(cccdDescriptor)
-//        }
-//    }
-//
-//    fun onCharacteristicChanged(gatt: BluetoothGatt, characteristic: BluetoothGattCharacteristic) {
-//        if (characteristic.uuid == uuidCharacteristic) {
-//            val dataFromBluetooth = characteristic.value.decodeToString()
-//            Log.d("BluetoothRepository", "Received data: $dataFromBluetooth")
-//            connectionResultChannel.trySend(
-//                ConnectionResult.ConnectionEstablished(
-//                    dataFromBluetooth,
-//                    gatt.device.toBluetoothDeviceDomain()
-//                )
-//            )
-//        }
-//    }
-//
-//    private fun findCharacteristics(
-//        serviceUUID: String,
-//        characteristicsUUID: String,
-//    ): BluetoothGattCharacteristic? {
-//        return bluetoothGatt?.services?.find { service ->
-//            service.uuid.toString() == serviceUUID
-//        }?.characteristics?.find { characteristic ->
-//            characteristic.uuid.toString() == characteristicsUUID
-//        }
-//    }
-//
-//    // Unregister BroadcastReceiver przy niszczeniu kontrolera
-//    fun unregister() {
-//        try {
-//            context.unregisterReceiver(bluetoothStateReceiver)
-//            context.unregisterReceiver(foundDeviceReceiver)
-//        } catch (e: IllegalArgumentException) {
-//            Log.e("BluetoothRepository", "Receiver not registered", e)
-//        }
-//    }
-//
-//
-//    // In AndroidBluetoothRepository.kt
-//    @SuppressLint("MissingPermission")
-//    override fun connectToPairedDeviceWithCharacteristic(
-//        characteristicCheck: (BluetoothDeviceDomain) -> Boolean,
-//    ): Flow<ConnectionResult> = flow {
-//        if (!hasPermission(Manifest.permission.BLUETOOTH_CONNECT)) {
-//            throw SecurityException("Missing BLUETOOTH_CONNECT permission.")
-//        }
-//
-//        val pairedDevices = bluetoothAdapter?.bondedDevices
-//        if (pairedDevices != null) {
-//            val targetDevice = pairedDevices
-//                .map { it.toBluetoothDeviceDomain(rssi = null) }
-//                .find { deviceDomain -> characteristicCheck(deviceDomain) }
-//
-//            if (targetDevice != null) {
-//                // Proceed to connect to the device
-//                emitAll(connectToDevice(targetDevice))
-//            } else {
-//                emit(ConnectionResult.Error("No paired device with specified characteristics found."))
-//            }
-//        } else {
-//            emit(ConnectionResult.Error("No paired devices found."))
-//        }
-//    }
-//
-//
-//}
-
-
-
-
-
-
-
-

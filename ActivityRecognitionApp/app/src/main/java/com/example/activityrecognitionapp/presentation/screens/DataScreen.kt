@@ -1,6 +1,6 @@
 package com.example.activityrecognitionapp.presentation.screens
 
-import android.graphics.Color
+import android.graphics.Color.LTGRAY
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -44,6 +44,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.activityrecognitionapp.R
+import com.example.activityrecognitionapp.presentation.theme.LighterPrimary
 import com.example.activityrecognitionapp.presentation.viewmodels.DataScreenViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.components.Legend
@@ -59,9 +60,9 @@ import java.util.Locale
 @Composable
 fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hiltViewModel()) {
 
-    // State for the selected tab index - categories D, T, M
+    // State for the selected tab index - categories D (Day), T (Week), M (Month)
     var selectedTabIndex by remember { mutableStateOf(0) }
-    // List of tab titles: Day, Week, Month
+    // List of tab titles
     val tabs = listOf("D", "T", "M")
 
     // Collecting data from the ViewModel
@@ -69,18 +70,30 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-
     // State for showing the DatePicker dialog
     var showDatePicker by remember { mutableStateOf(false) }
     // State for the selected date
     var selectedDate by remember { mutableStateOf<Date?>(null) }
 
-    // Przygotowanie danych i etykiet XAxis na podstawie wybranego zakładki lub daty
-    val (filteredActivityCounts, xAxisLabels) = remember(selectedTabIndex, selectedDate, activityCounts) {
+    // Prepare data and XAxis labels based on selected tab or date
+    val (filteredActivityCounts, xAxisLabels) = remember(
+        selectedTabIndex,
+        selectedDate,
+        activityCounts
+    ) {
         when {
-            selectedDate != null && selectedTabIndex == 0 -> viewModel.prepareDataForSelectedDay(selectedDate!!)
-            selectedDate != null && selectedTabIndex == 1 -> viewModel.prepareDataForWeekTab(selectedDate!!)
-            selectedDate != null && selectedTabIndex == 2 -> viewModel.prepareDataForMonthTab(selectedDate!!)
+            selectedDate != null && selectedTabIndex == 0 -> viewModel.prepareDataForSelectedDay(
+                selectedDate!!
+            )
+
+            selectedDate != null && selectedTabIndex == 1 -> viewModel.prepareDataForWeekTab(
+                selectedDate!!
+            )
+
+            selectedDate != null && selectedTabIndex == 2 -> viewModel.prepareDataForMonthTab(
+                selectedDate!!
+            )
+
             selectedTabIndex == 0 -> viewModel.prepareDataForDayTab()
             selectedTabIndex == 1 -> viewModel.prepareDataForWeekTab(Calendar.getInstance().time)
             selectedTabIndex == 2 -> viewModel.prepareDataForMonthTab(Calendar.getInstance().time)
@@ -88,15 +101,14 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
         }
     }
 
-    // Obliczenie maksymalnej wartości Y dla skalowania wykresu
+    // Calculate the maximum Y value for chart scaling
     val maxYValue = viewModel.calculateMaxYValue(filteredActivityCounts)
 
-    // Logowanie dla celów debugowania
+    // Logging for debugging purposes
     Log.d("DataScreen", "Selected Tab: ${tabs[selectedTabIndex]}")
     Log.d("DataScreen", "Filtered Activity Counts: $filteredActivityCounts")
     Log.d("DataScreen", "X-Axis Labels: $xAxisLabels")
     Log.d("DataScreen", "Max Y Value: $maxYValue")
-
 
     Box(
         modifier = Modifier
@@ -110,9 +122,11 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
             ) {
-                // Wiersz z przyciskiem wyboru daty
+                // Row with date selection text and icon
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -120,31 +134,39 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
+                    // Display selected date or current date
                     Text(
                         text = selectedDate?.let {
                             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(it)
                         } ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
                         style = MaterialTheme.typography.bodyLarge,
                         modifier = Modifier
-                            .clickable { showDatePicker = true }
+                            .clickable {
+                                showDatePicker = true
+                            } // Make the text clickable to show DatePicker
                             .padding(1.dp)
                     )
+                    // Icon button to open DatePicker
                     IconButton(onClick = { showDatePicker = true }) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            painter = painterResource(id = R.drawable.add),
+                            painter = painterResource(id = R.drawable.arrow),
                             contentDescription = "Select Date",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 }
 
-                // TabBar na górze
-                TabRow(selectedTabIndex = selectedTabIndex) {
+                // TabRow for selecting Day, Week, or Month
+                TabRow(selectedTabIndex = selectedTabIndex,
+                    modifier = Modifier,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = LighterPrimary
+                ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
                             selected = selectedTabIndex == index,
-                            onClick = { selectedTabIndex = index },
+                            onClick = { selectedTabIndex = index }, // Update selected tab index
                             text = { Text(title) }
                         )
                     }
@@ -165,10 +187,12 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
                     ) {
                         when {
                             isLoading -> {
+                                // Show loading indicator while data is being fetched
                                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                             }
 
                             errorMessage != null -> {
+                                // Display error message if an error occurs
                                 Text(
                                     text = errorMessage ?: "An error occurred.",
                                     modifier = Modifier.align(Alignment.Center)
@@ -176,16 +200,22 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
                             }
 
                             filteredActivityCounts.isEmpty() -> {
-                                Text(text = "No activity data available.", modifier = Modifier.align(Alignment.Center))
+                                // Show message if no data is available
+                                Text(
+                                    text = "No activity data available.",
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
                             }
 
                             else -> {
+                                // Display the BarChart using AndroidView
                                 AndroidView(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(400.dp),
                                     factory = { context ->
                                         BarChart(context).apply {
+                                            // Configure BarChart appearance
                                             description.isEnabled = false
                                             setDrawGridBackground(false)
                                             setPinchZoom(false)
@@ -194,47 +224,56 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
                                             setDrawValueAboveBar(true)
                                             animateY(1000)
 
-                                            // Konfiguracja osi X
+                                            // Configure X Axis
                                             xAxis.apply {
                                                 position = XAxis.XAxisPosition.BOTTOM
                                                 setDrawGridLines(false)
                                                 labelRotationAngle = -45f
                                                 isGranularityEnabled = true
                                                 granularity = 1f
-                                                textColor = Color.LTGRAY
-                                                valueFormatter = IndexAxisValueFormatter(xAxisLabels)
+                                                textColor = LTGRAY
+                                                valueFormatter =
+                                                    IndexAxisValueFormatter(xAxisLabels)
                                             }
 
-                                            // Konfiguracja osi Y
+                                            // Configure Y Axis
                                             axisLeft.apply {
                                                 axisMinimum = 0f
-                                                axisMaximum = maxYValue * 1.1f // Dodanie marginesu 10%
-                                                textColor = Color.LTGRAY
+                                                axisMaximum = maxYValue * 1.1f // Add 10% margin
+                                                textColor = LTGRAY
                                                 setDrawGridLines(true)
                                             }
                                             axisRight.isEnabled = false
 
-                                            // Konfiguracja legendy
+                                            // Configure Legend
                                             legend.apply {
-                                                verticalAlignment = Legend.LegendVerticalAlignment.TOP
-                                                horizontalAlignment = Legend.LegendHorizontalAlignment.CENTER
+                                                verticalAlignment =
+                                                    Legend.LegendVerticalAlignment.TOP
+                                                horizontalAlignment =
+                                                    Legend.LegendHorizontalAlignment.CENTER
                                                 orientation = Legend.LegendOrientation.HORIZONTAL
                                                 setDrawInside(false)
                                                 isEnabled = true
-                                                textColor = Color.LTGRAY
+                                                textColor = LTGRAY
                                             }
 
-                                            // Przygotowanie danych do wykresu
-                                            val barData = viewModel.prepareStackedBarData(filteredActivityCounts)
+                                            // Prepare and set data for the chart
+                                            val barData = viewModel.prepareStackedBarData(
+                                                filteredActivityCounts
+                                            )
                                             this.data = barData
 
                                             this.invalidate()
                                         }
                                     },
                                     update = { barChart ->
-                                        barChart.xAxis.valueFormatter = IndexAxisValueFormatter(xAxisLabels)
-                                        barChart.data = viewModel.prepareStackedBarData(filteredActivityCounts)
-                                        barChart.axisLeft.axisMaximum = maxYValue * 1.1f // Aktualizacja axisMaximum
+                                        // Update the chart with new data and labels
+                                        barChart.xAxis.valueFormatter =
+                                            IndexAxisValueFormatter(xAxisLabels)
+                                        barChart.data =
+                                            viewModel.prepareStackedBarData(filteredActivityCounts)
+                                        barChart.axisLeft.axisMaximum =
+                                            maxYValue * 1.1f // Update axis maximum
                                         barChart.notifyDataSetChanged()
                                         barChart.invalidate()
                                     }
@@ -246,7 +285,6 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
             }
         }
     }
-
     // Wyświetlanie DatePickerDialog
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(
@@ -283,3 +321,4 @@ fun DataScreen(navController: NavController, viewModel: DataScreenViewModel = hi
         }
     }
 }
+

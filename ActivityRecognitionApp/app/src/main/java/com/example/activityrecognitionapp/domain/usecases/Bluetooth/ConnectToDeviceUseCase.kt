@@ -1,4 +1,4 @@
-package com.example.activityrecognitionapp.domain.usecase.Bluetooth
+package com.example.activityrecognitionapp.domain.usecases.Bluetooth
 
 import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 import com.example.activityrecognitionapp.domain.ConnectionResult

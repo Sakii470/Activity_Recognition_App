@@ -12,20 +12,18 @@ import com.example.activityrecognitionapp.domain.BluetoothDeviceDomain
 
 data class BluetoothUiState(
     val scannedDevices: List<BluetoothDevice> = emptyList(),
-    //val pairedDevices: List<BluetoothDevice> = emptyList(),
     val isConnected: Boolean = false,
     val isConnecting: Boolean = false,
     val errorMessage: String? = null,
     val dataFromBluetooth: String? = null,
     val connectedDevice: BluetoothDeviceDomain? = null,
-    val isBluetoothEnabled: Boolean = false
-
+    val isBluetoothEnabled: Boolean = false,
 )
 
 data class NetworkBannerState(
     val showBanner: Boolean = false,
     val message: String = "",
-    val color: Int = Color.BLUE
+    val color: Int = Color.BLUE,
 )
 
 

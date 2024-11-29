@@ -25,26 +25,31 @@ import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthVi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarWithMenu(onLogoutClicked: () -> Unit) {
+    // Obtain the SupabaseAuthViewModel using Hilt
     val supabaseViewModel: SupabaseAuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
+    // Collect the current login state from the ViewModel
     val uiLoginState by supabaseViewModel.uiLoginState.collectAsState()
 
+    // State to control the visibility of the dropdown menu
     var expanded by remember { mutableStateOf(false) }
 
-
-
-
+    // Top app bar with title and menu actions
     TopAppBar(
         title = {
-            Text(text = stringResource(id = R.string.hi) + " " + uiLoginState.userName + "!"
+            // Display a greeting with the user's name
+            Text(
+                text = stringResource(id = R.string.hi) + " " + uiLoginState.userName + "!"
             )
         },
         actions = {
+            // Icon button to toggle the dropdown menu
             IconButton(onClick = { expanded = true }) {
                 Icon(
                     imageVector = Icons.Default.MoreVert,
                     contentDescription = "Menu"
                 )
             }
+            // Dropdown menu with logout option
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }

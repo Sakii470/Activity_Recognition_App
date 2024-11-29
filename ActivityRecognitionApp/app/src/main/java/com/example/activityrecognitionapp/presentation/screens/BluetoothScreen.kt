@@ -17,65 +17,37 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothViewModel
 import kotlinx.coroutines.launch
 
+/**
+ * Composable function for the Bluetooth screen.
+ *
+ * @param viewModel ViewModel handling Bluetooth logic.
+ * @param onBluetoothEnableFailed Callback invoked when enabling Bluetooth fails.
+ */
 @Composable
 fun BluetoothScreen(
     viewModel: BluetoothViewModel,
     onBluetoothEnableFailed: () -> Unit = {},
 ) {
+    // Observe the current Bluetooth UI state from the ViewModel
     val bluetoothUiState by viewModel.bluetoothUiState.collectAsState()
+    // Initialize SnackbarHostState for displaying snackbars
     val snackbarHostState = remember { SnackbarHostState() }
+    // Coroutine scope for launching snackbar actions
     val coroutineScope = rememberCoroutineScope()
 
-    // Launcher to enable Bluetooth
-//    val bluetoothEnableLauncher = rememberLauncherForActivityResult(
-//        contract = ActivityResultContracts.StartActivityForResult()
-//    ) { result ->
-//        if (result.resultCode != android.app.Activity.RESULT_OK) {
-//            onBluetoothEnableFailed()
-//            // Optionally, you can also call viewModel.onBluetoothEnableFailed() here
-//            // Uncomment the below line if such a method exists in ViewModel
-//            // viewModel.onBluetoothEnableFailed()
-//        }
-//        // No need to update the Bluetooth state manually
-//    }
-
-    // Collect error messages and display Snackbar
-//    LaunchedEffect(key1 = true) {
-//        viewModel.errorMessages.collectLatest { message ->
-//            if (message.isNotEmpty()) {
-//                snackbarHostState.showSnackbar(message)
-//                viewModel.clearErrorMessage()
-//            }
-//        }
-//    }
-
-//    // Collect events from ViewModel and handle enabling Bluetooth
-//    LaunchedEffect(Unit) {
-//        Log.d("BluetoothScreen", "LaunchedEffect started")
-//        viewModel.events.collectLatest { event ->
-//            when (event) {
-//                is BluetoothEvent.RequestEnableBluetooth -> {
-//                    // Log for debugging
-//                    Log.d("BluetoothScreen", "Launching intent to request enabling Bluetooth")
-////                    BluetoothbluetoothEnableLauncher.launch(
-////                        Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-////                    )
-//                }
-//            }
-//        }
-//    }
-
-    // Use Scaffold with SnackbarHost
+    // Scaffold layout with SnackbarHost
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         content = { contentPadding ->
+            // Display the DeviceScreen with necessary callbacks and padding
             DeviceScreen(
                 state = bluetoothUiState,
                 connectedDevice = bluetoothUiState.connectedDevice,
                 onStartScan = viewModel::startScan,
                 onDeviceClick = viewModel::connectToDevice,
                 onDisconnect = viewModel::disconnectFromDevice,
-                //enableBluetooth = viewModel::enableBluetooth,
+                // Uncomment and implement if Bluetooth enabling is needed
+                // enableBluetooth = viewModel::enableBluetooth,
                 contentPadding = contentPadding // Pass the content padding
             )
         }
@@ -86,10 +58,12 @@ fun BluetoothScreen(
         isBluetoothEnabled = viewModel.isBluetoothEnabled(),
         onPermissionsGranted = {
             if (!viewModel.isBluetoothEnabled()) {
+                // Enable Bluetooth if not already enabled
                 viewModel.enableBluetooth()
             }
         },
         onPermissionsDenied = {
+            // Show snackbar message if permissions are denied
             coroutineScope.launch {
                 snackbarHostState.showSnackbar(
                     message = "Bluetooth must be enabled to use this mobile device functionality.",
@@ -100,10 +74,12 @@ fun BluetoothScreen(
     )
 }
 
-
-
 /**
- * PermissionsHandler manages Bluetooth permissions.
+ * Composable function to handle Bluetooth permissions.
+ *
+ * @param isBluetoothEnabled Current state of Bluetooth being enabled.
+ * @param onPermissionsGranted Callback invoked when permissions are granted.
+ * @param onPermissionsDenied Callback invoked when permissions are denied.
  */
 @Composable
 fun PermissionsHandler(
@@ -111,9 +87,11 @@ fun PermissionsHandler(
     onPermissionsGranted: () -> Unit,
     onPermissionsDenied: () -> Unit
 ) {
+    // Launcher for requesting multiple permissions
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { perms ->
+        // Determine if Bluetooth permissions are granted based on Android version
         val canEnableBluetooth = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             perms[Manifest.permission.BLUETOOTH_CONNECT] == true &&
                     perms[Manifest.permission.BLUETOOTH_SCAN] == true
@@ -122,19 +100,22 @@ fun PermissionsHandler(
                     perms[Manifest.permission.BLUETOOTH_ADMIN] == true
         }
 
+        // Invoke callbacks based on permission results
         if (canEnableBluetooth && !isBluetoothEnabled) {
             onPermissionsGranted()
         }
         if (isBluetoothEnabled) {
+            // Do nothing if Bluetooth is already enabled
             Unit
         } else {
             onPermissionsDenied()
         }
     }
 
-   //  Launch permission request on initialization
+    // Launch permission request when the composable is first rendered
     LaunchedEffect(key1 = true) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            // Request Bluetooth permissions for Android S and above
             permissionLauncher.launch(
                 arrayOf(
                     Manifest.permission.BLUETOOTH_SCAN,
@@ -142,6 +123,7 @@ fun PermissionsHandler(
                 )
             )
         } else {
+            // Request Bluetooth permissions for below Android S
             permissionLauncher.launch(
                 arrayOf(
                     Manifest.permission.BLUETOOTH,
@@ -150,10 +132,4 @@ fun PermissionsHandler(
             )
         }
     }
-
-
 }
-
-
-
-

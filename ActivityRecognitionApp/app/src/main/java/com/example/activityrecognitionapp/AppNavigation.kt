@@ -1,7 +1,5 @@
 package com.example.activityrecognitionapp
 
-
-
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.util.Log
@@ -26,8 +24,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.activityrecognitionapp.components.navigation.BottomNavigationBar
-import com.example.activityrecognitionapp.components.network.NetworkBanner
 import com.example.activityrecognitionapp.components.navigation.TopBarWithMenu
+import com.example.activityrecognitionapp.components.network.NetworkBanner
 import com.example.activityrecognitionapp.presentation.screens.BluetoothScreen
 import com.example.activityrecognitionapp.presentation.screens.DataScreen
 import com.example.activityrecognitionapp.presentation.screens.HomeScreen
@@ -37,10 +35,9 @@ import com.example.activityrecognitionapp.presentation.screens.SplashScreen
 import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothViewModel
 import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthViewModel
 
-
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
-fun AppNavigation(){
+fun AppNavigation() {
     val bluetoothViewModel: BluetoothViewModel = hiltViewModel()
     val supabaseViewModel: SupabaseAuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
     val isLoggedIn = supabaseViewModel.uiLoginState.collectAsState().value.isLoggedIn
@@ -51,36 +48,29 @@ fun AppNavigation(){
     val isNetworkAvailable by bluetoothViewModel.isNetworkAvailable.collectAsState()
     val showNetworkBanner by bluetoothViewModel.showNetworkBanner.collectAsState()
 
-    
-    
-
-    // Pobierz referencję do Activity
+    // Get a reference to the Activity
     val activity = LocalContext.current as? Activity
 
-    // Globalny BackHandler, który kończy aplikację
+    // Global BackHandler to exit the application
     BackHandler {
-        activity?.finish() // Zakończ Activity i wyjdź z aplikacji
+        activity?.finish() // Finish the Activity and exit the app
     }
 
     val startDestination = "splash"
 
-
-
-
-
     Column(modifier = Modifier.fillMaxSize()) {
-        // Wyświetlanie NetworkBanner na górze, jeśli jest widoczny
+        // Display NetworkBanner at the top if visible
         if (showNetworkBanner) {
             NetworkBanner(
                 isConnected = isNetworkAvailable,
                 onBannerDismissed = { bluetoothViewModel.hideNetworkBanner() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .zIndex(1f) // Upewnij się, że jest na wierzchu
+                    .zIndex(1f) // Ensure it is on top
             )
         }
 
-        // Scaffold zawiera resztę UI
+        // Scaffold contains the rest of the UI
         Scaffold(
             topBar = {
                 if (isLoggedIn) {
@@ -102,17 +92,17 @@ fun AppNavigation(){
             Box(modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()) {
-                // Główna nawigacja
+                // Main navigation
                 NavHost(
                     navController = navController,
                     startDestination = startDestination,
                 ) {
-                    // Ekrany uwierzytelniania
+                    // Authentication screens
                     composable("splash") { SplashScreen(navController) }
                     composable("login") { LoginScreen(navController) }
                     composable("signUp") { SignUpScreen(navController) }
 
-                    // Ekrany główne
+                    // Main screens
                     composable("home") { HomeScreen(navController, bluetoothViewModel) }
                     composable("data") { DataScreen(navController) }
                     composable("bluetooth") { BluetoothScreen(viewModel = bluetoothViewModel) }
@@ -121,20 +111,8 @@ fun AppNavigation(){
         }
     }
 
-    // Logowanie stanu NetworkBanner dla diagnostyki
+    // Log NetworkBanner state for diagnostics
     LaunchedEffect(showNetworkBanner, isNetworkAvailable) {
         Log.d("AppNavigation", "showNetworkBanner: $showNetworkBanner, isNetworkAvailable: $isNetworkAvailable")
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

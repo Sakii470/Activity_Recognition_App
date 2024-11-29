@@ -22,6 +22,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
+/**
+ * Displays a network connectivity banner that informs the user about the current connection status.
+ *
+ * When the device is connected, it shows a "Connection Restored" message with a green background.
+ * When disconnected, it displays a "No Connection" message with a blue background.
+ * The banner animates into view and can automatically dismiss after a short delay when reconnected.
+ *
+ * @param isConnected Indicates whether the device is currently connected to the internet.
+ * @param onBannerDismissed Callback function invoked when the banner is dismissed.
+ * @param modifier Modifier to customize the appearance and layout of the banner.
+ */
 @Composable
 fun NetworkBanner(
     isConnected: Boolean,
@@ -30,12 +41,14 @@ fun NetworkBanner(
 ) {
     Log.d("NetworkBanner", "Rendering NetworkBanner: isConnected=$isConnected")
 
+    // Determine the message and background color based on the connection status
     val (message, barColor) = if (isConnected) {
-        "Connection Restored" to Color(0xFF4CAF50) // Green
+        "Connection Restored" to Color(0xFF4CAF50)
     } else {
-        "No Connection" to Color(0xFF2196F3) // Blue
+        "No Connection" to Color(0xFF2196F3)
     }
 
+    // Animated visibility for the banner with slide-in and slide-out animations
     AnimatedVisibility(
         visible = true,
         enter = slideInVertically(initialOffsetY = { -it }),
@@ -46,32 +59,33 @@ fun NetworkBanner(
                 .background(barColor)
                 .fillMaxWidth()
                 .height(25.dp),
-            contentAlignment = Alignment.Center // Wyrównanie całej zawartości Boxa do środka
+            contentAlignment = Alignment.Center
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically, // Wyrównanie elementów w wierszu w pionie
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center     // Wyrównanie elementów w wierszu w poziomie
+                horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = message,
                     color = Color.White,
-                    modifier = Modifier.padding(end = 8.dp) // Odstęp między tekstem a wskaźnikiem
+                    modifier = Modifier.padding(end = 8.dp)
                 )
                 CircularProgressIndicator(
                     modifier = Modifier
-                        .size(16.dp), // Rozmiar wskaźnika
+                        .size(16.dp),
                     color = Color.White,
-                    strokeWidth = 2.dp // Grubość wskaźnika
+                    strokeWidth = 2.dp
                 )
             }
         }
     }
 
+    // Automatically dismiss the banner after 2 seconds when the connection is restored
     if (isConnected) {
         LaunchedEffect(Unit) {
-            delay(2000)
-            onBannerDismissed()
+            delay(2000)          // Wait for 2 seconds
+            onBannerDismissed() // Invoke the dismissal callback
             Log.d("NetworkBanner", "Banner dismissed after reconnection.")
         }
     }

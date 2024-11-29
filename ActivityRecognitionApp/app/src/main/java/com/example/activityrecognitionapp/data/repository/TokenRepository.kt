@@ -21,41 +21,61 @@ import kotlinx.datetime.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
+/**
+ * Repository for managing authentication tokens and user session data.
+ * Utilizes Android DataStore for persistent storage of tokens and user information.
+ */
 @Singleton
 class TokenRepository @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
-    // DataStore instance for managing preferences, using the "user_prefs" storage name
+
+    // Extension property to create a DataStore instance for preferences
     private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
-    // Klucze używane w DataStore
     companion object {
+        // Keys for storing data in DataStore
         val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
         val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
         val EXPIRES_AT_KEY = stringPreferencesKey("expires_at")
         val USER_NAME_KEY = stringPreferencesKey("user_name")
     }
 
-    // Funkcje do zarządzania nazwą użytkownika
+    /**
+     * Saves the user's display name to DataStore.
+     *
+     * @param name The display name to be saved.
+     */
     suspend fun saveUserName(name: String) {
         context.dataStore.edit { preferences ->
             preferences[USER_NAME_KEY] = name
         }
     }
 
+    /**
+     * Retrieves the user's display name as a Flow.
+     *
+     * @return A Flow emitting the user's display name or null if not set.
+     */
     fun getDisplayName(): Flow<String?> {
         return context.dataStore.data.map { preferences ->
             preferences[USER_NAME_KEY]
         }
     }
 
-    // Flow do pobierania tokenu dostępu z aktualizacjami
+    /**
+     * Flow that emits the current access token.
+     *
+     * @return A Flow emitting the access token string or null if not available.
+     */
     val accessTokenFlow: Flow<String?> = context.dataStore.data
         .map { preferences ->
             preferences[ACCESS_TOKEN_KEY]
         }
 
-    // Czyszczenie tokenu dostępu i nazwy użytkownika
+    /**
+     * Clears the stored access token and user name from DataStore.
+     */
     suspend fun clearAccessToken() {
         context.dataStore.edit { preferences ->
             preferences.remove(ACCESS_TOKEN_KEY)
@@ -63,12 +83,20 @@ class TokenRepository @Inject constructor(
         }
     }
 
-    // Pobieranie identyfikatora użytkownika
+    /**
+     * Retrieves the current user's unique identifier.
+     *
+     * @return The user ID as a String or null if no user is authenticated.
+     */
     fun getUserId(): String? {
         return SupabaseApiClient.SupabaseClient.Client.gotrue.currentSessionOrNull()?.user?.id
     }
 
-    // Funkcje do zarządzania sesją
+    /**
+     * Saves the session details, including access and refresh tokens, to DataStore.
+     *
+     * @param session The Session object containing token information.
+     */
     suspend fun saveSession(session: Session) {
         context.dataStore.edit { preferences ->
             preferences[ACCESS_TOKEN_KEY] = session.accessToken
@@ -77,6 +105,11 @@ class TokenRepository @Inject constructor(
         }
     }
 
+    /**
+     * Retrieves the current session details from DataStore.
+     *
+     * @return A Session object with access and refresh tokens, or null if incomplete.
+     */
     suspend fun getSession(): Session? {
         val preferences = context.dataStore.data.first()
         val accessToken = preferences[ACCESS_TOKEN_KEY]
@@ -95,13 +128,20 @@ class TokenRepository @Inject constructor(
         }
     }
 
+    /**
+     * Clears all session data from DataStore, effectively logging out the user.
+     */
     suspend fun clearSession() {
         context.dataStore.edit { preferences ->
             preferences.clear()
         }
     }
 
-    // Funkcje do zarządzania tokenami
+    /**
+     * Updates and saves the access token in the current session.
+     *
+     * @param token The new access token to be saved.
+     */
     suspend fun saveAccessToken(token: String) {
         val session = getSession()?.copy(accessToken = token) ?: Session(
             accessToken = token,
@@ -111,6 +151,11 @@ class TokenRepository @Inject constructor(
         saveSession(session)
     }
 
+    /**
+     * Updates and saves the refresh token in the current session.
+     *
+     * @param token The new refresh token to be saved.
+     */
     suspend fun saveRefreshToken(token: String) {
         val session = getSession()?.copy(refreshToken = token) ?: Session(
             accessToken = "",
@@ -120,19 +165,36 @@ class TokenRepository @Inject constructor(
         saveSession(session)
     }
 
+    /**
+     * Retrieves the current access token from the session.
+     *
+     * @return The access token string or null if not available.
+     */
     suspend fun getAccessToken(): String? {
         return getSession()?.accessToken
     }
 
+    /**
+     * Retrieves the current refresh token from the session.
+     *
+     * @return The refresh token string or null if not available.
+     */
     suspend fun getRefreshToken(): String? {
         return getSession()?.refreshToken
     }
 
+    /**
+     * Clears both access and refresh tokens from the session.
+     */
     suspend fun clearTokens() {
         clearSession()
     }
 
-    // Sprawdzenie, czy sesja wygasła
+    /**
+     * Checks whether the current session has expired based on the expiration timestamp.
+     *
+     * @return True if the session is expired, false otherwise.
+     */
     fun isSessionExpired(): Boolean {
         val session = runBlocking { getSession() }
         val isExpired = session?.expiresAt?.let { it <= Clock.System.now() } ?: true
@@ -140,138 +202,3 @@ class TokenRepository @Inject constructor(
         return isExpired
     }
 }
-
-
-//    // Companion object containing keys used in DataStore for storing preferences
-//    companion object {
-//        // Key for storing and accessing the access token in DataStore
-//        val ACCESS_TOKEN_KEY = stringPreferencesKey("access_token")
-//        val USER_NAME_KEY = stringPreferencesKey("user_name")
-//    }
-//
-//
-//
-//
-//    suspend fun saveUserName(name: String) {
-//        context.dataStore.edit { prefrences ->
-//            prefrences[USER_NAME_KEY] = name
-//        }
-//    }
-//
-//    fun getDisplayName(): Flow<String?> {
-//        return context.dataStore.data.map { preferences ->
-//            preferences[USER_NAME_KEY]
-//        }
-//    }
-//
-//
-//    // Flow to retrieve the access token, providing live updates when the token changes
-//    val accessTokenFlow: Flow<String?> = context.dataStore.data
-//        .map { preferences ->
-//            preferences[ACCESS_TOKEN_KEY]
-//        }
-//
-//    /**
-//     * Saves the access token to DataStore.
-//     * @param token The access token string to save.
-//     */
-////    suspend fun saveAccessToken(token: String) {
-////        context.dataStore.edit { preferences ->
-////            preferences[ACCESS_TOKEN_KEY] = token
-////        }
-////    }
-//
-//    /**
-//     * Clears the access token from DataStore.
-//     */
-//    suspend fun clearAccessToken() {
-//        context.dataStore.edit { preferences ->
-//            preferences.remove(ACCESS_TOKEN_KEY)
-//            preferences.remove(USER_NAME_KEY)
-//        }
-//    }
-//
-//    fun getUserId(): String? {
-//        return SupabaseClient.Client.gotrue.currentSessionOrNull()?.user?.id
-//    }
-//
-//
-//
-//    suspend fun saveSession(session: Session) {
-//        context.dataStore.edit { preferences ->
-//            preferences[stringPreferencesKey("access_token")] = session.accessToken
-//            preferences[stringPreferencesKey("refresh_token")] = session.refreshToken
-//            preferences[stringPreferencesKey("expires_at")] = session.expiresAt.toString()
-//        }
-//    }
-//
-//     suspend fun getSession(): Session? {
-//        val preferences = context.dataStore.data.first()
-//        val accessToken = preferences[stringPreferencesKey("access_token")]
-//        val refreshToken = preferences[stringPreferencesKey("refresh_token")]
-//        val expiresAtString = preferences[stringPreferencesKey("expires_at")]
-//        val expiresAt = expiresAtString?.let { Instant.parse(it) }
-//
-//        return if (accessToken != null && refreshToken != null && expiresAt != null) {
-//            Session(
-//                accessToken = accessToken,
-//                refreshToken = refreshToken,
-//                expiresAt = expiresAt
-//            )
-//        } else {
-//            null
-//        }
-//    }
-//
-//     suspend fun clearSession() {
-//        context.dataStore.edit { preferences ->
-//            preferences.clear()
-//        }
-//    }
-////     suspend fun getRefreshToken(): String? {
-////        return getSession()?.refreshToken
-////    }
-////
-////     suspend fun clearTokens() {
-////        clearSession()
-////    }
-////
-////    fun isSessionExpired(): Boolean {
-////        val session = runBlocking {getSession() }
-////        val isExpired = session?.expiresAt?.let { it <= Clock.System.now() } ?: true
-////        Log.d("SupabaseAuthViewModel", "isSessionExpired: $isExpired")
-////        return isExpired
-////    }
-//
-//
-//
-//     suspend fun saveAccessToken(token: String) {
-//        val session = sessionStorage.getSession()?.copy(accessToken = token) ?: Session(accessToken = token, refreshToken = "", expiresAt = Clock.System.now())
-//        sessionStorage.saveSession(session)
-//    }
-//
-//     suspend fun saveRefreshToken(token: String) {
-//        val session = sessionStorage.getSession()?.copy(refreshToken = token) ?: Session(accessToken = "", refreshToken = token, expiresAt = Clock.System.now())
-//        sessionStorage.saveSession(session)
-//    }
-//
-//     suspend fun getAccessToken(): String? {
-//        return sessionStorage.getSession()?.accessToken
-//    }
-//
-//     suspend fun getRefreshToken(): String? {
-//        return sessionStorage.getSession()?.refreshToken
-//    }
-//
-//     suspend fun clearTokens() {
-//        sessionStorage.clearSession()
-//    }
-//
-//   fun isSessionExpired(): Boolean {
-//        val session = runBlocking { sessionStorage.getSession() }
-//        return session?.expiresAt?.let { it <= Clock.System.now() } ?: true
-//    }
-
-
-
-

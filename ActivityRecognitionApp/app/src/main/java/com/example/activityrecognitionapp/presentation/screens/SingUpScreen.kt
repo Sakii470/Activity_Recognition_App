@@ -29,25 +29,47 @@ import com.example.activityrecognitionapp.presentation.states.UserState
 import com.example.activityrecognitionapp.presentation.theme.Primary
 import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthViewModel
 
+/**
+ * Composable function for the Sign-Up screen.
+ *
+ * @param navController Navigation controller to handle screen transitions.
+ * @param viewModel ViewModel handling authentication logic.
+ */
 @Composable
 fun SignUpScreen(
     navController: NavController,
     viewModel: SupabaseAuthViewModel = hiltViewModel(),
 ) {
-    // Collect the loginUiState from ViewModel to observe user input and authentication status
+    // Observe the current UI state from the ViewModel
     val loginUiState by viewModel.uiLoginState.collectAsState()
-    // Display the sign-up screen content
+
+    // Render the sign-up content with appropriate callbacks
     SignUpScreenContent(
         loginUiState = loginUiState,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onNameChange = viewModel::onNameChange,
-        onSignUpClick = {viewModel.signUp(loginUiState.userName,loginUiState.userEmail,loginUiState.userPassword)},
+        onSignUpClick = {
+            viewModel.signUp(
+                loginUiState.userName,
+                loginUiState.userEmail,
+                loginUiState.userPassword
+            )
+        },
         onLoginClick = { navController.navigate("login") }
     )
-
 }
 
+/**
+ * Composable function that builds the content of the Sign-Up screen.
+ *
+ * @param loginUiState Current state of the login form.
+ * @param onEmailChange Callback for email input changes.
+ * @param onPasswordChange Callback for password input changes.
+ * @param onNameChange Callback for name input changes.
+ * @param onSignUpClick Callback when the sign-up button is clicked.
+ * @param onLoginClick Callback to navigate to the login screen.
+ */
 @Composable
 fun SignUpScreenContent(
     loginUiState: LoginUiState,
@@ -58,77 +80,84 @@ fun SignUpScreenContent(
     onLoginClick: () -> Unit
 ) {
     Surface(
-        //color = Color.White,
         modifier = Modifier
             .fillMaxSize()
-
     ) {
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp)
         ) {
+            // Greeting text
             NormalTextComponent(value = stringResource(id = R.string.hello))
+
+            // Heading for creating an account
             HeadingTextComponent(
                 value = stringResource(id = R.string.create_account),
                 modifier = Modifier.padding(16.dp)
             )
-            // Email input field with a user icon
+
+            // Name input field
             MyTextFieldComponent(
                 labelValue = stringResource(id = R.string.name),
                 painterResource = painterResource(id = R.drawable.user),
                 value = loginUiState.userName,
                 onValueChange = onNameChange
             )
-            
-            // Email input field with a user icon
+
+            // Email input field
             MyTextFieldComponent(
                 labelValue = stringResource(id = R.string.email),
                 painterResource = painterResource(id = R.drawable.user),
                 value = loginUiState.userEmail,
                 onValueChange = onEmailChange
             )
-            // Password input field with a lock icon
+
+            // Password input field
             PasswordTextFieldComponent(
                 labelValue = stringResource(id = R.string.password),
                 painterResource = painterResource(id = R.drawable.password_locker),
                 value = loginUiState.userPassword,
                 onValueChange = onPasswordChange
             )
-            // Display a message based on the current user loginUiState, such as success or error
+
+            // Display success or error message
             UserloginUiStateMessage(userloginUiState = loginUiState.userState)
 
             Spacer(modifier = Modifier.height(50.dp))
-            // Button for the registration action
+
+            // Register button
             ButtonComponent(
                 value = stringResource(id = R.string.register),
                 onButtonClick = onSignUpClick
             )
 
+            // Divider and login navigation
             DividerTextComponent()
-            // Clickable text for users to navigate to the login screen if they already have an account
-            ClickableTextComponent(normalText = "",
-                clickableText = stringResource(
-                    id = R.string.login
-                ),
+            ClickableTextComponent(
+                normalText = "",
+                clickableText = stringResource(id = R.string.login),
                 onTextSelected = onLoginClick
             )
-
         }
-
     }
-
 }
 
-
+/**
+ * Composable to display messages based on user state (success or error).
+ *
+ * @param userloginUiState Current user state.
+ */
 @Composable
 private fun UserloginUiStateMessage(userloginUiState: UserState) {
-    // Display a message based on the user loginUiState (e.g., success or error message)
+    // Determine the message to display based on the user state
     val message = when (userloginUiState) {
         is UserState.Success -> userloginUiState.message
         is UserState.Error -> userloginUiState.message
         else -> null
     }
 
+    // Show the message if it exists
     message?.let {
         Text(text = it, color = Primary)
     }

@@ -1,6 +1,5 @@
 package com.example.activityrecognitionapp.presentation.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.activityrecognitionapp.data.model.Session
@@ -8,12 +7,12 @@ import com.example.activityrecognitionapp.data.network.SupabaseApiClient
 import com.example.activityrecognitionapp.data.repository.DataRepository
 import com.example.activityrecognitionapp.data.repository.TokenRepository
 import com.example.activityrecognitionapp.domain.repository.BluetoothRepository
-import com.example.activityrecognitionapp.domain.usecase.Authorization.GetCurrentUserUseCase
-import com.example.activityrecognitionapp.domain.usecase.Authorization.IsSessionExpiredUseCase
-import com.example.activityrecognitionapp.domain.usecase.Authorization.LoginUseCase
-import com.example.activityrecognitionapp.domain.usecase.Authorization.LogoutUseCase
-import com.example.activityrecognitionapp.domain.usecase.Authorization.RefreshSessionUseCase
-import com.example.activityrecognitionapp.domain.usecase.Authorization.SignUpUseCase
+import com.example.activityrecognitionapp.domain.usecases.Authorization.GetCurrentUserUseCase
+import com.example.activityrecognitionapp.domain.usecases.Authorization.IsSessionExpiredUseCase
+import com.example.activityrecognitionapp.domain.usecases.Authorization.LoginUseCase
+import com.example.activityrecognitionapp.domain.usecases.Authorization.LogoutUseCase
+import com.example.activityrecognitionapp.domain.usecases.Authorization.RefreshSessionUseCase
+import com.example.activityrecognitionapp.domain.usecases.Authorization.SignUpUseCase
 import com.example.activityrecognitionapp.presentation.states.LoginUiState
 import com.example.activityrecognitionapp.presentation.states.UserState
 import com.example.activityrecognitionapp.utils.Event
@@ -28,10 +27,22 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonPrimitive
 import javax.inject.Inject
 
-
+/**
+ * ViewModel responsible for handling user authentication and authorization using Supabase.
+ * It manages login, sign-up, logout processes, session management, and updates the UI state accordingly.
+ *
+ * @property tokenRepository Repository for managing token storage and retrieval.
+ * @property dataRepository Repository for handling data operations.
+ * @property bluetoothRepository Repository for managing Bluetooth-related operations.
+ * @property loginUseCase Use case for handling user login.
+ * @property signUpUseCase Use case for handling user sign-up.
+ * @property logoutUseCase Use case for handling user logout.
+ * @property refreshSessionUseCase Use case for refreshing user sessions.
+ * @property isSessionExpiredUseCase Use case for checking if the user session has expired.
+ * @property getCurrentUserUseCase Use case for retrieving the current user's information.
+ */
 @HiltViewModel
 class SupabaseAuthViewModel @Inject constructor(
-    // application: Application,
     private val tokenRepository: TokenRepository,
     private val dataRepository: DataRepository,
     private val bluetoothRepository: BluetoothRepository,
@@ -40,20 +51,31 @@ class SupabaseAuthViewModel @Inject constructor(
     private val logoutUseCase: LogoutUseCase,
     private val refreshSessionUseCase: RefreshSessionUseCase,
     private val isSessionExpiredUseCase: IsSessionExpiredUseCase,
-    private val getCurrentUserUseCase: GetCurrentUserUseCase
+    private val getCurrentUserUseCase: GetCurrentUserUseCase,
+) : ViewModel() {
 
-    ) : ViewModel() {
-
-    // Holds the UI state for login and sign-up screens.
+    /**
+     * MutableStateFlow holding the UI state for login and sign-up screens.
+     * Exposed as an immutable StateFlow to observers.
+     */
     private val _uiLoginState = MutableStateFlow(LoginUiState())
     val uiLoginState: StateFlow<LoginUiState> = _uiLoginState.asStateFlow()
 
+    // Pomocnicza metoda (tylko do testów)
+    fun setUiLoginState(state: LoginUiState) {
+        _uiLoginState.value = state
+    }
 
+    /**
+     * MutableStateFlow holding the result of the login operation.
+     * Exposed as an immutable StateFlow to observers.
+     */
     private val _loginResult = MutableStateFlow(Result.success(Unit))
     val loginResult: StateFlow<Result<Unit>> = _loginResult.asStateFlow()
 
-    // val loginResult = MutableLiveData<Result<Unit>>()
-
+    /**
+     * Initialization block that resets the user state and checks if the current session has expired.
+     */
     init {
         resetUserState()
         checkSessionExpired()
@@ -77,36 +99,60 @@ class SupabaseAuthViewModel @Inject constructor(
         _uiLoginState.update { it.copy(userPassword = newPassword) }
     }
 
+    /**
+     * Updates the user's name in the UI state.
+     *
+     * @param newName The new name entered by the user.
+     */
     fun onNameChange(newName: String) {
         _uiLoginState.update { it.copy(userName = newName) }
     }
 
     /**
-     * Handles user login by calling Supabase API and saves the access token.
-     * Updates the UI state based on the result of the login attempt.
+     * Handles user login by invoking the [LoginUseCase] with the provided email and password.
+     * Upon successful login, retrieves the current user's information and updates the UI state.
+     * If login fails, updates the UI state with the corresponding error message.
+     *
+     * @param email The user's email address.
+     * @param password The user's password.
      */
-
     fun login(email: String, password: String) {
         viewModelScope.launch {
-            val result = loginUseCase(email, password)
+            try{
+                // Execute the login use case with provided credentials
+                val result = loginUseCase(email, password) ?: Result.failure(Exception("Unexpected null result"))
 
+                if (result.isSuccess) {
+                    // Retrieve the current user's information after successful login
+                    val user = getCurrentUserUseCase()
+                    val userName =
+                        user?.userMetadata?.get("display_name")?.jsonPrimitive?.content ?: ""
 
-            if (result.isSuccess) {
-                val user = getCurrentUserUseCase()
-                val userName = user?.userMetadata?.get("display_name")?.jsonPrimitive?.content ?: "Unknown"
-                _uiLoginState.update {
-                    it.copy(
-                        userState = UserState.Success("Logged successfully"),
-                        isLoggedIn = true,
-                        userName = userName
-                    )
+                    // Update the UI state to reflect successful login
+                    _uiLoginState.update {
+                        it.copy(
+                            userState = UserState.Success("Logged in successfully"),
+                            isLoggedIn = true,
+                            userName = userName
+                        )
+                    }
+                } else {
+                    // Extract and format the error message
+                    val errorMessage =
+                        result.exceptionOrNull()?.message?.substringBefore("URL") ?: "Login failed"
+
+                    // Update the UI state to reflect login failure
+                    _uiLoginState.update {
+                        it.copy(
+                            userState = UserState.Error(errorMessage),
+                            isLoggedIn = false
+                        )
+                    }
                 }
-            } else {
-                val errorMessage =
-                    result.exceptionOrNull()?.message?.substringBefore("URL") ?: "Login failed"
+            }catch (e:Exception){
                 _uiLoginState.update {
                     it.copy(
-                        userState = UserState.Error(errorMessage),
+                        userState = UserState.Error("Login failed"),
                         isLoggedIn = false
                     )
                 }
@@ -115,31 +161,43 @@ class SupabaseAuthViewModel @Inject constructor(
     }
 
     /**
-     * Handles user sign-up by calling Supabase API and saves the access token.
-     * Updates the UI state based on the result of the sign-up attempt.
+     * Handles user sign-up by invoking the [SignUpUseCase] with the provided name, email, and password.
+     * Upon successful registration, updates the UI state accordingly.
+     * If sign-up fails, updates the UI state with the corresponding error message.
+     *
+     * @param name The user's full name.
+     * @param email The user's email address.
+     * @param password The user's password.
      */
-
-
     fun signUp(name: String, email: String, password: String) {
         viewModelScope.launch {
+            // Execute the sign-up use case with provided details
             val result = signUpUseCase(name, email, password)
 
             if (result.isSuccess) {
-                _uiLoginState.update { it.copy(userState = UserState.Success("Registered successfully")) }
+                // Update the UI state to reflect successful registration
+                _uiLoginState.update {
+                    it.copy(userState = UserState.Success("Registered successfully"))
+                }
             } else {
+                // Extract and format the error message
                 val errorMessage = result.exceptionOrNull()?.message?.substringBefore("URL")
                     ?: "Registration failed"
-                _uiLoginState.update { it.copy(userState = UserState.Error(errorMessage)) }
+
+                // Update the UI state to reflect sign-up failure
+                _uiLoginState.update {
+                    it.copy(userState = UserState.Error(errorMessage))
+                }
             }
         }
     }
 
-
-
     /**
-     * Saves the current access token and refresh token to the [TokenRepository].
+     * Saves the current session tokens (access token and refresh token) to the [TokenRepository].
+     * This function retrieves the current session from Supabase and persists it for future use.
      */
     private suspend fun saveToken() {
+        // Retrieve the current session from Supabase
         val currentSession = SupabaseApiClient.SupabaseClient.Client.gotrue.currentSessionOrNull()
         currentSession?.let { session ->
             val expiresAt = session.expiresAt
@@ -148,175 +206,108 @@ class SupabaseAuthViewModel @Inject constructor(
                 refreshToken = session.refreshToken,
                 expiresAt = expiresAt
             )
+            // Save the session to the token repository
             tokenRepository.saveSession(newSession)
         }
     }
 
-    /**
-     * Saves the user's display name to the [TokenRepository].
-     */
-    private suspend fun saveName() {
-        try {
-            val jwt =
-                SupabaseApiClient.SupabaseClient.Client.gotrue.currentSessionOrNull()?.accessToken
-            if (jwt != null) {
-                val user = SupabaseApiClient.SupabaseClient.Client.gotrue.retrieveUser(jwt)
-                user?.userMetadata?.let { metadata ->
-                    val displayName = metadata["display_name"]?.jsonPrimitive?.content
-                    if (displayName != null) {
-                        tokenRepository.saveUserName(displayName)
-                        Log.d(
-                            "YourViewModel",
-                            "Retrieved displayName from uiLoginState: ${uiLoginState.value.userName}"
-                        )
-                        Log.d("YourViewModel", "Retrieved displayName from DataStore: $displayName")
-                    } else {
-                        Log.e(
-                            "UserMetadata",
-                            "`display_name` is not available or not a String in userMetadata."
-                        )
-                    }
-                } ?: run {
-                    Log.e("UserMetadata", "userMetadata is null.")
-                }
-            } else {
-                Log.e("Error", "User is not authenticated. JWT token is null.")
-            }
-        } catch (e: Exception) {
-            Log.e("SupabaseAuthViewModel", "Error retrieving user name", e)
-        }
-    }
+
 
     /**
-     * Logs out the user by calling Supabase API and clears the access token.
-     * Updates the UI state based on the result of the logout attempt.
+     * Logs out the current user by invoking the [LogoutUseCase].
+     * Upon successful logout, updates the UI state and sends a logout event.
+     * If logout fails, updates the UI state with an appropriate message.
      */
     fun logout() {
         viewModelScope.launch {
-            val result = logoutUseCase()
+            try{
+                // Execute the logout use case
+                val result = logoutUseCase()
 
-            if (result.isSuccess) {
-                _uiLoginState.update {
-                    it.copy(
-                        userState = UserState.Success("Logout successfully"),
-                        isLoggedIn = false,
-
-                    )
+                if (result.isSuccess) {
+                    // Update the UI state to reflect successful logout
+                    _uiLoginState.update {
+                        it.copy(
+                            userState = UserState.Success("Logged out successfully"),
+                            isLoggedIn = false,
+                        )
+                    }
+                    // Send a global logout event to notify other components
+                    EventBus.sendEvent(Event.Logout)
+                } else {
+                    // Update the UI state to reflect logout failure (e.g., offline logout)
+                    _uiLoginState.update {
+                        it.copy(
+                            userState = UserState.Success("Logged out offline"),
+                            isLoggedIn = false
+                        )
+                    }
                 }
-                EventBus.sendEvent(Event.Logout)
-            } else {
+            }catch(e:Exception){
                 _uiLoginState.update {
                     it.copy(
-                        userState = UserState.Success("Logout offline"),
+                        userState = UserState.Success("Logged out offline"),
                         isLoggedIn = false
                     )
                 }
             }
-
-
         }
     }
 
-//    fun logout() {
-//        viewModelScope.launch {
-//            _uiLoginState.update { it.copy(userState = UserState.Loading) }
-//            var logoutMessage = "Logout successfully"
-//            try {
-//                SupabaseApiClient.SupabaseClient.Client.gotrue.logout()
-//                tokenRepository.clearTokens()
-//                dataRepository.clearAllData()
-//                bluetoothRepository.closeConnection()
-//                _uiLoginState.update {
-//                    it.copy(
-//                        userState = UserState.Success("Logout successfully"),
-//                        isLoggedIn = false,
-//                    )
-//                }
-//            } catch (e: Exception) {
-//                // Logowanie błędu, ale nie zatrzymujemy procesu wylogowania
-//                val errorMessage = e.message ?: "Logout failed"
-//                Log.e("SupabaseAuthViewModel", "Logout error: $errorMessage")
-//                _uiLoginState.update {
-//                    it.copy(
-//                        userState = UserState.Success("Logout offline"),
-//                        isLoggedIn = false
-//                    )
-//                }
-//            } finally {
-//                // Zawsze czyścimy tokeny i dane
-//                tokenRepository.clearTokens()
-//                dataRepository.clearAllData()
-//                bluetoothRepository.closeConnection()
-//                _uiLoginState.update {
-//                    it.copy(
-//                        userState = UserState.Success(logoutMessage),
-//                        isLoggedIn = false
-//                    )
-//                }
-//            }
-//        }
-//    }
-
     /**
-     * Checks if the user is already logged in by retrieving the access token from the repository.
-     * Updates the UI state accordingly.
+     * Checks whether the current user session has expired.
+     * If the session is expired, updates the UI state with an error and logs out the user.
+     * If the session is still valid, attempts to refresh the session and updates the UI state accordingly.
      */
-//    fun isUserLoggedIn() {
-//        viewModelScope.launch {
-//            try {
-//                _uiLoginState.update { it.copy(userState = UserState.Loading) }
-//                val token = tokenRepository.getAccessToken()
-//                if (token.isNullOrEmpty()) {
-//                    _uiLoginState.update {
-//                        it.copy(
-//                            userState = UserState.Success("User not logged in!"),
-//                            isLoggedIn = false
-//                        )
-//                    }
-//                } else {
-//                    tokenRefresh()
-//                }
-//            } catch (e: Exception) {
-//                val errorMessage = e.message?.substringBefore("URL") ?: "Error occurred"
-//                _uiLoginState.update {
-//                    it.copy(userState = UserState.Error(errorMessage), isLoggedIn = false)
-//                }
-//            }
-//        }
-//    }
-
     fun checkSessionExpired() {
         viewModelScope.launch {
-            val isExpired = isSessionExpiredUseCase()
-            if (isExpired) {
-                _uiLoginState.update {
-                    it.copy(
-                        userState = UserState.Error("Session Expired"),
-                        isLoggedIn = false
-                    )
-                }
-                // Optional: Handle logout or navigate to login screen
-            } else {
-                val refreshResult = refreshSessionUseCase()
-                if (refreshResult.isSuccess) {
-                    val user = getCurrentUserUseCase()
-                    val userName = user?.userMetadata?.get("display_name")?.jsonPrimitive?.content ?: "Unknown"
+            try {
+                // Determine if the current session has expired
+                val isExpired = isSessionExpiredUseCase.invoke()
+                if (isExpired) {
+                    // Update the UI state to indicate that the session has expired
                     _uiLoginState.update {
                         it.copy(
-                            userState = UserState.Success("Session refreshed successfully"),
-                            isLoggedIn = true,
-                            userName = userName
-                        )
-                    }
-                } else {
-                    val errorMessage = refreshResult.exceptionOrNull()?.message?.substringBefore("URL")
-                        ?: "Token Refresh failed"
-                    _uiLoginState.update {
-                        it.copy(
-                            userState = UserState.Error(errorMessage),
+                            userState = UserState.Error("Session Expired"),
                             isLoggedIn = false
                         )
                     }
+                } else {
+                    // Attempt to refresh the session if it hasn't expired
+                    val refreshResult = refreshSessionUseCase.invoke()
+                    if (refreshResult.isSuccess) {
+                        val user = getCurrentUserUseCase.invoke()
+                        val userName =
+                            user?.userMetadata?.get("display_name")?.jsonPrimitive?.content ?: "Unknown"
+
+                        // Update the UI state to reflect a successful session refresh
+                        _uiLoginState.update {
+                            it.copy(
+                                userState = UserState.Success("Session refreshed successfully"),
+                                isLoggedIn = true,
+                                userName = userName
+                            )
+                        }
+                    } else {
+                        val errorMessage = refreshResult.exceptionOrNull()?.message?.substringBefore("URL")
+                            ?: "Token Refresh failed"
+
+                        // Update the UI state to reflect the failure to refresh the session
+                        _uiLoginState.update {
+                            it.copy(
+                                userState = UserState.Error(errorMessage),
+                                isLoggedIn = false
+                            )
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Handle unexpected errors
+                _uiLoginState.update {
+                    it.copy(
+                        userState = UserState.Error("An unexpected error occurred: ${e.message}"),
+                        isLoggedIn = false
+                    )
                 }
             }
         }
@@ -324,113 +315,10 @@ class SupabaseAuthViewModel @Inject constructor(
 
     /**
      * Resets the [userState] in the UI state to [UserState.Idle].
-     * This is useful to prevent repeated navigation or UI updates based on previous state.
+     * This is useful to prevent repeated navigation or UI updates based on the previous state.
      */
     fun resetUserState() {
         _uiLoginState.update { it.copy(userState = UserState.Idle) }
     }
 
-    /**
-     * Observes changes to the user's display name and updates the UI state accordingly.
-     */
-//    private fun observeDisplayName() {
-//        viewModelScope.launch {
-//            tokenRepository.getDisplayName().collect { displayName ->
-//                Log.d("YourViewModel", "Retrieved displayName from DataStore: $displayName")
-//                _uiLoginState.update {
-//                    it.copy(userName = displayName ?: "Unknown")
-//                }
-//                Log.d(
-//                    "YourViewModel",
-//                    "Retrieved displayName from _uiLoginState: ${_uiLoginState.value.userName}"
-//                )
-//            }
-//        }
-//    }
-
-    /**
-     * Refreshes the session if it has expired.
-     * Updates the UI state accordingly.
-     */
-
-    fun tokenRefresh() {
-        viewModelScope.launch {
-            val result = refreshSessionUseCase()
-
-            if (result.isSuccess) {
-                _uiLoginState.update {
-                    it.copy(
-                        userState = UserState.Success("Session refreshed successfully"),
-                        isLoggedIn = true
-                    )
-                }
-                Log.d("SupabaseAuthRepository", "Session refresh successful")
-
-            } else {
-                val errorMessage = result.exceptionOrNull()?.message?.substringBefore("URL")
-                    ?: "Token Refresh failed"
-                _uiLoginState.update {
-                    it.copy(
-                        userState = UserState.Error(errorMessage),
-                        isLoggedIn = false
-                    )
-
-                }
-
-            }
-        }
-    }
 }
-
-//    private suspend fun tokenRefresh() {
-//        try {
-//            if (tokenRepository.isSessionExpired()) {
-//                Log.d("SupabaseAuthViewModel", "Session expired. Refreshing session.")
-//                SupabaseApiClient.SupabaseClient.Client.gotrue.refreshCurrentSession()
-//                saveToken()
-//                saveName()
-//                _uiLoginState.update {
-//                    it.copy(
-//                        userState = UserState.Success("Session refreshed successfully"),
-//                        isLoggedIn = true
-//                    )
-//                }
-//            } else {
-//                Log.d("SupabaseAuthViewModel", "Session is still valid.")
-//                try {
-//                    SupabaseApiClient.SupabaseClient.Client.gotrue.retrieveUser(tokenRepository.getAccessToken()!!)
-//                    saveName()
-//                    _uiLoginState.update {
-//                        it.copy(
-//                            userState = UserState.Success("User already logged in!"),
-//                            isLoggedIn = true
-//                        )
-//                    }
-//                } catch (e: Exception) {
-//                    Log.e("SupabaseAuthViewModel", "Failed to retrieve user: ${e.message}")
-//                    _uiLoginState.update {
-//                        it.copy(
-//                            userState = UserState.Error("Failed to retrieve user: ${e.message}"),
-//                            isLoggedIn = false
-//                        )
-//                    }
-//                }
-//            }
-//        } catch (e: Exception) {
-//            val errorMessage = e.message?.substringBefore("URL") ?: "Failed to refresh session"
-//            Log.e("SupabaseAuthViewModel", errorMessage)
-//            _uiLoginState.update {
-//                it.copy(
-//                    userState = UserState.Error(errorMessage),
-//                    isLoggedIn = false
-//                )
-//            }
-//        }
-//    }
-
-
-
-
-
-
-

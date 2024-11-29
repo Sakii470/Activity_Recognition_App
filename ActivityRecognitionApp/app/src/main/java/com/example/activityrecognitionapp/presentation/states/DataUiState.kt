@@ -5,14 +5,15 @@ class DataUiState {
         val user_id: String?,
         val timestamp: String,
         val activity_type: String,
-        val count: Int?
+        val count: Int?,
     )
 
     data class ActivityCountAggregated(
         val date: String,
         val stand: Int,
         val walk: Int,
-        val run: Int
+        val run: Int,
+        val unknownActivity: Int,
     )
 
 

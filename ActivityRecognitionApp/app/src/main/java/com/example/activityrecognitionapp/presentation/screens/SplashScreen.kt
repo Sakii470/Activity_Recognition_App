@@ -24,38 +24,46 @@ import androidx.navigation.NavController
 import com.example.activityrecognitionapp.R
 import kotlinx.coroutines.delay
 
+/**
+ * Composable function representing the Splash Screen of the app.
+ *
+ * @param navController The NavController used to navigate between screens.
+ */
 @Composable
-fun SplashScreen(navController: NavController,
+fun SplashScreen(navController: NavController) {
 
-                 ) {
-// Collect the UI state from the ViewModel
-
+    // State to control the visibility of the splash content
     var isVisible by remember { mutableStateOf(false) }
+
+    // Side-effect to handle the splash screen display duration and navigation
     LaunchedEffect(Unit) {
         isVisible = true
-        delay(1500) // czas wyświetlania splash screenu
+        delay(1500)
         isVisible = false
-        delay(300) // czas na zakończenie animacji wyjści
-        //Log.d("Splash","isLoggedIn = ${isLoggedIn}")
+        delay(300)
 
+        // Navigate to the "login" screen and remove "splash" from the back stack
         navController.navigate("login") {
-            popUpTo("splash") { inclusive = true } // usuń splash screen z back stacka
+            popUpTo("splash") { inclusive = true }
         }
     }
 
+    // Animated visibility to handle the entrance and exit animations of the splash content
     AnimatedVisibility(
         visible = isVisible,
         enter = fadeIn() + slideInVertically(initialOffsetY = { -1000 }),
         exit = fadeOut() + slideOutVertically(targetOffsetY = { 1000 })
     ) {
+        // Box to center the splash content both vertically and horizontally
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
+            // Display the app icon or logo image
             Image(
-                painter = painterResource(id = R.drawable.password_locker),
+                painter = painterResource(id = R.drawable.jogging),
                 contentDescription = "App Icon",
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground)
             )

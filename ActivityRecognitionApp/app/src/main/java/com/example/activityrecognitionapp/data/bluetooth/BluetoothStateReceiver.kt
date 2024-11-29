@@ -9,67 +9,62 @@ import android.os.Build
 
 /**
  * A BroadcastReceiver that listens for Bluetooth state change events, specifically
- * connection and disconnection of Bluetooth devices. When a device connects or
- * disconnects, it triggers the provided callback with the new connection state
- * and the associated Bluetooth device.
+ * the connection and disconnection of Bluetooth devices.
  *
- * @property onStateChange A callback function that is invoked when the Bluetooth
- * connection state changes, providing the connection status and the Bluetooth device.
+ * When a device connects or disconnects, it triggers the corresponding callback
+ * with the new connection state and the associated Bluetooth device.
+ *
+ * @property onBluetoothStateChanged Callback invoked when Bluetooth is enabled or disabled.
+ * @property onConnectionStateChanged Callback invoked when a Bluetooth device connects or disconnects.
  */
-
 class BluetoothStateReceiver(
-    private val onBluetoothStateChanged: (isConnected: Boolean) -> Unit,
-    private val onConnectionStateChanged: (isConnected: Boolean, BluetoothDevice) -> Unit
-): BroadcastReceiver() {
+    private val onBluetoothStateChanged: (isEnabled: Boolean) -> Unit,
+    private val onConnectionStateChanged: (isConnected: Boolean, device: BluetoothDevice) -> Unit
+) : BroadcastReceiver() {
 
+    /**
+     * Receives and handles Bluetooth-related intents.
+     *
+     * @param context The context in which the receiver is running.
+     * @param intent The intent being received.
+     */
     override fun onReceive(context: Context?, intent: Intent?) {
         when (intent?.action) {
+            // Handles changes in the overall Bluetooth adapter state (e.g., turned on/off)
             BluetoothAdapter.ACTION_STATE_CHANGED -> {
                 val state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, BluetoothAdapter.ERROR)
                 val isEnabled = state == BluetoothAdapter.STATE_ON
                 onBluetoothStateChanged(isEnabled)
             }
+            // Handles the event when a Bluetooth device is connected
             BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                } else {
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                }
-                if (device != null) {
-                    onConnectionStateChanged(true, device)
+                val device: BluetoothDevice? = getBluetoothDeviceFromIntent(intent)
+                device?.let {
+                    onConnectionStateChanged(true, it)
                 }
             }
+            // Handles the event when a Bluetooth device is disconnected
             BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-                val device: BluetoothDevice? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
-                } else {
-                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-                }
-                if (device != null) {
-                    onConnectionStateChanged(false, device)
+                val device: BluetoothDevice? = getBluetoothDeviceFromIntent(intent)
+                device?.let {
+                    onConnectionStateChanged(false, it)
                 }
             }
         }
     }
 
-//    override fun onReceive(context: Context?, intent: Intent?) {
-//        val device = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            intent?.getParcelableExtra(
-//                BluetoothDevice.EXTRA_DEVICE,
-//                BluetoothDevice::class.java
-//            )
-//        } else {
-//            intent?.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-//        }
-//        when (intent?.action) {
-//            BluetoothDevice.ACTION_ACL_CONNECTED -> {
-//                onStateChange(true, device ?: return)
-//            }
-//
-//            BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
-//                onStateChange(false, device ?: return)
-//            }
-//        }
-//    }
+    /**
+     * Retrieves the BluetoothDevice from the intent, handling different API levels.
+     *
+     * @param intent The intent containing the BluetoothDevice information.
+     * @return The [BluetoothDevice] if available, or `null` otherwise.
+     */
+    private fun getBluetoothDeviceFromIntent(intent: Intent): BluetoothDevice? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+        }
+    }
 }
-

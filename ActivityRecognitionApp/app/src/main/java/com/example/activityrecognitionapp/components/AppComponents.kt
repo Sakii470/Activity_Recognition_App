@@ -7,7 +7,6 @@ package com.example.activityrecognitionapp.components
  * a cohesive theme throughout the app.
  */
 
-
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
@@ -77,7 +76,14 @@ import com.example.activityrecognitionapp.presentation.theme.LighterPrimary
 import com.example.activityrecognitionapp.presentation.theme.Primary
 import com.example.activityrecognitionapp.presentation.theme.Secondary
 
-
+/**
+ * Displays normal-sized centered text.
+ *
+ * @param value The text to display.
+ * @param modifier Modifier for styling.
+ * @param style Text styling options.
+ * @param textAlign Alignment of the text.
+ */
 @Composable
 fun NormalTextComponent(
     value: String,
@@ -100,6 +106,14 @@ fun NormalTextComponent(
     )
 }
 
+/**
+ * Displays heading-sized centered text.
+ *
+ * @param value The text to display.
+ * @param modifier Modifier for styling.
+ * @param style Text styling options.
+ * @param textAlign Alignment of the text.
+ */
 @Composable
 fun HeadingTextComponent(
     value: String,
@@ -122,7 +136,11 @@ fun HeadingTextComponent(
     )
 }
 
-
+/**
+ * Defines custom colors for text fields.
+ *
+ * @return TextFieldColors with customized color scheme.
+ */
 @Composable
 fun getTextFieldColors() = TextFieldDefaults.colors(
     focusedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -130,9 +148,17 @@ fun getTextFieldColors() = TextFieldDefaults.colors(
     unfocusedIndicatorColor = Color.Transparent,
     focusedIndicatorColor = Color.Transparent,
     focusedLeadingIconColor = LighterPrimary,
+    focusedLabelColor = LighterPrimary
+)
 
-    )
-
+/**
+ * Displays a customized text field with a leading icon.
+ *
+ * @param labelValue The label for the text field.
+ * @param painterResource The icon to display.
+ * @param value Current text value.
+ * @param onValueChange Callback for text changes.
+ */
 @Composable
 fun MyTextFieldComponent(
     labelValue: String,
@@ -140,7 +166,6 @@ fun MyTextFieldComponent(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-
     val textValue = rememberSaveable { mutableStateOf("") }
 
     OutlinedTextField(
@@ -163,6 +188,14 @@ fun MyTextFieldComponent(
     )
 }
 
+/**
+ * Displays a password text field with visibility toggle.
+ *
+ * @param labelValue The label for the password field.
+ * @param painterResource The icon to display.
+ * @param value Current password value.
+ * @param onValueChange Callback for password changes.
+ */
 @Composable
 fun PasswordTextFieldComponent(
     labelValue: String,
@@ -170,11 +203,9 @@ fun PasswordTextFieldComponent(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-
     val password = rememberSaveable { mutableStateOf("") }
-    val passwordVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
+    val passwordVisible = rememberSaveable { mutableStateOf(false) }
+
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth(),
         label = { Text(text = labelValue) },
@@ -198,7 +229,7 @@ fun PasswordTextFieldComponent(
                 Icons.Filled.VisibilityOff
             }
 
-            var description = if (passwordVisible.value) {
+            val description = if (passwordVisible.value) {
                 stringResource(id = R.string.hide_password)
             } else {
                 stringResource(id = R.string.show_password)
@@ -206,7 +237,6 @@ fun PasswordTextFieldComponent(
 
             IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                 Icon(imageVector = iconImage, contentDescription = description, tint = Primary)
-
             }
         },
         visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
@@ -214,17 +244,23 @@ fun PasswordTextFieldComponent(
     )
 }
 
+/**
+ * Displays clickable text composed of normal and clickable segments.
+ *
+ * @param normalText The non-clickable part of the text.
+ * @param clickableText The clickable segment.
+ * @param onTextSelected Callback when clickable text is selected.
+ */
 @Composable
 fun ClickableTextComponent(
     normalText: String?,
     clickableText: String,
     onTextSelected: () -> Unit
 ) {
-
     val annotatedString = buildAnnotatedString {
         append(normalText)
         pushStringAnnotation(tag = clickableText, annotation = clickableText)
-        withStyle(style = SpanStyle(color = Primary)) {
+        withStyle(style = SpanStyle(color = LighterPrimary)) {
             append(clickableText)
         }
     }
@@ -236,10 +272,8 @@ fun ClickableTextComponent(
             .heightIn(min = 40.dp),
         style = TextStyle(
             fontSize = 21.sp,
-            // fontWeight = FontWeight.Bold,
             fontStyle = FontStyle.Normal,
             textAlign = TextAlign.Center,
-            // color = Color.White
         ),
         onClick = { offset ->
             annotatedString.getStringAnnotations(tag = clickableText, start = offset, end = offset)
@@ -252,18 +286,23 @@ fun ClickableTextComponent(
     )
 }
 
+/**
+ * Displays a customizable button with gradient background.
+ *
+ * @param value The text to display on the button.
+ * @param onButtonClick Callback when the button is clicked.
+ * @param modifier Modifier for styling.
+ */
 @Composable
 fun ButtonComponent(value: String, onButtonClick: () -> Unit, modifier: Modifier = Modifier) {
     Button(
         onClick = onButtonClick,
-
         modifier = modifier
             .fillMaxWidth()
             .heightIn(48.dp),
         contentPadding = PaddingValues(vertical = 8.dp),
         colors = ButtonDefaults.buttonColors(Color.Transparent)
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -278,20 +317,20 @@ fun ButtonComponent(value: String, onButtonClick: () -> Unit, modifier: Modifier
                 text = value,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-
-
-                )
+            )
         }
     }
 }
 
+/**
+ * Displays a row with dividers and the text "Or" in between.
+ */
 @Composable
 fun DividerTextComponent() {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Divider(
             modifier = Modifier
                 .fillMaxWidth()
@@ -312,6 +351,12 @@ fun DividerTextComponent() {
     }
 }
 
+/**
+ * Displays underlined centered text.
+ *
+ * @param value The text to display.
+ * @param onButtonClick Callback when the text is clicked.
+ */
 @Composable
 fun UnderLinedTextComponent(value: String, onButtonClick: () -> Unit) {
     Text(
@@ -323,12 +368,19 @@ fun UnderLinedTextComponent(value: String, onButtonClick: () -> Unit) {
             fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
             fontStyle = FontStyle.Normal,
-        ), //color = colorResource(id = R.color.colorGray),
+        ),
         textAlign = TextAlign.Center,
         textDecoration = TextDecoration.Underline
     )
 }
 
+/**
+ * Displays a list of scanned Bluetooth devices.
+ *
+ * @param scannedDevices List of BluetoothDevice to display.
+ * @param onClick Callback when a device is clicked.
+ * @param modifier Modifier for styling.
+ */
 @Composable
 fun BluetoothDeviceList(
     scannedDevices: List<BluetoothDevice>,
@@ -338,7 +390,6 @@ fun BluetoothDeviceList(
     LazyColumn(
         modifier = modifier
     ) {
-
         items(scannedDevices) { device ->
             Card(
                 modifier = Modifier
@@ -348,41 +399,53 @@ fun BluetoothDeviceList(
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.tertiary
                 )
-
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = "${device.name ?: "(No name)"} - RSSI: ${device.signalStrength}",
                         color = MaterialTheme.colorScheme.onBackground
                     )
-
                 }
             }
         }
     }
 }
 
+/**
+ * Displays an animated activity bar chart representing different activities.
+ *
+ * @param standingPercentage Percentage of time standing.
+ * @param walkingPercentage Percentage of time walking.
+ * @param runningPercentage Percentage of time running.
+ * @param unknownActivityPercentage Percentage of unknown activity.
+ * @param modifier Modifier for styling.
+ * @param height Height of the bar chart.
+ * @param cornerRadius Corner radius for the bars.
+ */
 @Composable
 fun ActivityBarChart(
     standingPercentage: Float,
     walkingPercentage: Float,
     runningPercentage: Float,
+    unknownActivityPercentage: Float,
     modifier: Modifier = Modifier,
     height: Dp = 30.dp,
     cornerRadius: Dp = 8.dp
 ) {
-    // Normalizacja procentów, aby suma nie przekraczała 1.0
+    // Normalize percentages to ensure total does not exceed 1.0
     val total = standingPercentage + walkingPercentage + runningPercentage
     val normalizedStanding = if (total > 1f) standingPercentage / total else standingPercentage
     val normalizedWalking = if (total > 1f) walkingPercentage / total else walkingPercentage
     val normalizedRunning = if (total > 1f) runningPercentage / total else runningPercentage
+    val normalizedUnknownActivity = if (total > 1f) unknownActivityPercentage / total else unknownActivityPercentage
 
-    // Obsługa przypadku, gdy suma procentów jest 0
+    // Handle case where total is 0
     val finalStanding = if (total == 0f) 0f else normalizedStanding
     val finalWalking = if (total == 0f) 0f else normalizedWalking
     val finalRunning = if (total == 0f) 0f else normalizedRunning
+    val finalUnknownActivity = if (total == 0f) 0f else normalizedUnknownActivity
 
-    // Animowane wartości procentowe
+    // Animate the percentages
     val animatedStanding by animateFloatAsState(
         targetValue = finalStanding,
         animationSpec = tween(durationMillis = 1000)
@@ -393,6 +456,10 @@ fun ActivityBarChart(
     )
     val animatedRunning by animateFloatAsState(
         targetValue = finalRunning,
+        animationSpec = tween(durationMillis = 1000)
+    )
+    val animatedUnknownActivity by animateFloatAsState(
+        targetValue = finalUnknownActivity,
         animationSpec = tween(durationMillis = 1000)
     )
 
@@ -407,25 +474,29 @@ fun ActivityBarChart(
 
         var startX = 0f
 
-        // Lista segmentów do rysowania
+        // List of segments with their colors
         val segments = listOf(
             Pair(
                 animatedStanding,
                 Brush.horizontalGradient(listOf(Color(0xFF1E88E5), Color(0xFF1976D2)))
-            ), // Niebieski
+            ), // Blue
             Pair(
                 animatedWalking,
                 Brush.horizontalGradient(listOf(Color(0xFF43A047), Color(0xFF388E3C)))
-            ),  // Zielony
+            ),  // Green
             Pair(
                 animatedRunning,
                 Brush.horizontalGradient(listOf(Color(0xFFE53935), Color(0xFFD32F2F)))
-            )    // Czerwony
+            ),    // Red
+            Pair(
+                animatedUnknownActivity,
+                Brush.horizontalGradient(listOf(Color(0xFFBDBDBD), Color(0xFF757575)))
+            )
         )
 
         segments.forEachIndexed { index, segment ->
             val (percentage, brush) = segment
-            if (percentage <= 0f) return@forEachIndexed // Pomijanie segmentów o 0%
+            if (percentage <= 0f) return@forEachIndexed // Skip segments with 0%
 
             val segmentWidth = barWidth * percentage
 
@@ -435,21 +506,21 @@ fun ActivityBarChart(
             val path = Path().apply {
                 when (index) {
                     0 -> {
-                        // Pierwszy segment - zaokrąglone lewe rogi
+                        // First segment - rounded left corners
                         addRoundRect(
                             RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
                         )
                     }
 
                     segments.lastIndex -> {
-                        // Ostatni segment - zaokrąglone prawe rogi
+                        // Last segment - rounded right corners
                         addRoundRect(
                             RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
                         )
                     }
 
                     else -> {
-                        // Środkowe segmenty - płaskie rogi
+                        // Middle segments - flat corners
                         addRoundRect(
                             RoundRect(rect, cornerRadiusPx, cornerRadiusPx)
                         )
@@ -457,7 +528,7 @@ fun ActivityBarChart(
                 }
             }
 
-            // Rysowanie segmentu
+            // Draw the segment
             drawPath(
                 path = path,
                 brush = brush,
@@ -469,6 +540,14 @@ fun ActivityBarChart(
     }
 }
 
+/**
+ * Displays a legend item with a colored box and label.
+ *
+ * @param color The color of the legend box.
+ * @param labelColor The color of the label text.
+ * @param label The label text.
+ * @param modifier Modifier for styling.
+ */
 @Composable
 fun LegendItem(
     color: Color,
@@ -494,56 +573,69 @@ fun LegendItem(
     }
 }
 
+/**
+ * Combines an activity bar chart with a legend.
+ *
+ * @param standingPercentage Percentage of time standing.
+ * @param walkingPercentage Percentage of time walking.
+ * @param runningPercentage Percentage of time running.
+ * @param unknownActivityPercentage Percentage of unknown activity.
+ * @param modifier Modifier for styling.
+ * @param chartHeight Height of the bar chart.
+ * @param cornerRadius Corner radius for the bars.
+ * @param legendSpacing Spacing between the chart and the legend.
+ */
 @Composable
 fun ActivityBarChartWithLegend(
     standingPercentage: Float,
     walkingPercentage: Float,
     runningPercentage: Float,
+    unknownActivityPercentage: Float,
     modifier: Modifier = Modifier,
     chartHeight: Dp = 30.dp,
     cornerRadius: Dp = 8.dp,
     legendSpacing: Dp = 15.dp
 ) {
     Column(modifier = modifier) {
-        // Wykres słupkowy
+        // Bar chart representing activity percentages
         ActivityBarChart(
             standingPercentage = standingPercentage,
             walkingPercentage = walkingPercentage,
             runningPercentage = runningPercentage,
-            modifier = Modifier
-                .fillMaxWidth(),
+            unknownActivityPercentage = unknownActivityPercentage,
+            modifier = Modifier.fillMaxWidth(),
             height = chartHeight,
             cornerRadius = cornerRadius
         )
 
         Spacer(modifier = Modifier.height(legendSpacing))
 
-        // Legenda
+        // Legend for the activity chart
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
-
         ) {
             LegendItem(
-                color = Color(0xFF1E88E5), // Niebieski
+                color = Color(0xFF1E88E5), // Blue
                 label = "Standing",
                 labelColor = MaterialTheme.colorScheme.onBackground
             )
             LegendItem(
-                color = Color(0xFF43A047), // Zielony
+                color = Color(0xFF43A047), // Green
                 label = "Walking",
                 labelColor = MaterialTheme.colorScheme.onBackground
             )
             LegendItem(
-                color = Color(0xFFE53935), // Czerwony
+                color = Color(0xFFE53935), // Red
                 label = "Running",
+                labelColor = MaterialTheme.colorScheme.onBackground
+            )
+            LegendItem(
+                color = Color(0xFFBDBDBD), // Gray
+                label = "Unknown",
                 labelColor = MaterialTheme.colorScheme.onBackground
             )
         }
     }
 }
-
-
-

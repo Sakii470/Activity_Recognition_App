@@ -5,7 +5,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id ("kotlin-kapt")
-    id("com.google.dagger.hilt.android")
+    id ("com.google.dagger.hilt.android")
+    id ("com.google.devtools.ksp")
 
 }
 
@@ -103,6 +104,12 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    testImplementation (libs.mockito.mockito.core)
+    testImplementation (libs.mockito.kotlin)
+    testImplementation (libs.kotlinx.coroutines.test)
+    testImplementation (libs.junitparams)
+    testImplementation (libs.mockk)
+    testImplementation (libs.mockk.v1137)
 
     // Debugging tools
     debugImplementation(libs.androidx.ui.tooling)
@@ -131,7 +138,7 @@ dependencies {
 
     //Room for Data
     implementation (libs.androidx.room.runtime)
-    kapt (libs.androidx.room.compiler)
+    ksp (libs.androidx.room.compiler)
     implementation (libs.androidx.room.ktx)
 
     //Data Synchronization
@@ -140,13 +147,15 @@ dependencies {
     // Hilt
     implementation (libs.hilt.android.v249)
     kapt (libs.hilt.compiler)
-//
-//    // Hilt WorkManager integration
+
+    // Hilt WorkManager integration
     implementation (libs.androidx.hilt.work)
     kapt (libs.androidx.hilt.compiler)
-//
-//    // WorkManager
+
+    // WorkManager
     implementation (libs.androidx.work.runtime.ktx)
+
+
 }
 
 

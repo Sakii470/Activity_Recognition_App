@@ -35,19 +35,24 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.activityrecognitionapp.R
 import com.example.activityrecognitionapp.components.ActivityBarChartWithLegend
+import com.example.activityrecognitionapp.presentation.states.HomeUiState
 import com.example.activityrecognitionapp.presentation.viewmodels.BluetoothViewModel
 
+/**
+ * Composable function for the Home screen.
+ *
+ * @param navController Navigation controller to handle screen transitions.
+ * @param viewModel ViewModel handling Bluetooth and home UI state.
+ */
 @Composable
-fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
+fun HomeScreen(navController: NavController, viewModel: BluetoothViewModel) {
 
+    // Observe the current Bluetooth and Home UI states from the ViewModel
     val bluetoothUiState by viewModel.bluetoothUiState.collectAsState()
     val homeUiState by viewModel.homeUiState.collectAsState()
-
     var showDialog by remember { mutableStateOf(false) }
 
-
-
-    // Check Bluetooth connection state
+    // Show dialog if Bluetooth is disconnected
     LaunchedEffect(bluetoothUiState.isConnected) {
         if (!bluetoothUiState.isConnected) {
             showDialog = true
@@ -62,11 +67,11 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            // Display Bluetooth connection status
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
-                    .padding(innerPadding)
                     .padding(horizontal = 8.dp)
                     .clip(MaterialTheme.shapes.medium), // Rounded corners
                 shape = MaterialTheme.shapes.medium,
@@ -77,12 +82,14 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                     contentAlignment = Alignment.Center
                 ) {
                     if (bluetoothUiState.isConnected) {
+                        // Show data received from Bluetooth
                         Text(
                             text = "${bluetoothUiState.dataFromBluetooth}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     } else {
+                        // Show disconnected message
                         Text(
                             text = stringResource(id = R.string.no_connect_ble_dev),
                             style = MaterialTheme.typography.bodyMedium,
@@ -94,20 +101,23 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
 
             Spacer(modifier = Modifier.height(35.dp))
 
-                ActivityBarChartWithLegend(
-                    standingPercentage = homeUiState.standPercentage,
-                    walkingPercentage = homeUiState.walkPercentage,
-                    runningPercentage = homeUiState.runPercentage,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            // Display activity bar chart with legend
+            ActivityBarChartWithLegend(
+                standingPercentage = homeUiState.standPercentage,
+                walkingPercentage = homeUiState.walkPercentage,
+                runningPercentage = homeUiState.runPercentage,
+                unknownActivityPercentage = homeUiState.unknownActivityPercentage,
+                modifier = Modifier.fillMaxWidth()
+            )
 
-                // You can display a placeholder or nothing
-                Spacer(modifier = Modifier.height(200.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
+            // Display activity counters
+            ActivityCounters(homeUiState = homeUiState)
 
-            Spacer(modifier = Modifier.height(50.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
-            // Row with two icons
+            // Row containing Start and Pause/Reset icons
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,7 +144,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                     modifier = Modifier
                         .size(70.dp)
                         .clickable {
-                          viewModel.stopChart()
+                            viewModel.stopChart()
                         },
                     tint = Color.Unspecified
                 )
@@ -142,7 +152,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
         }
     }
 
-    // Display AlertDialog if not connected to a Bluetooth device
+    // Show AlertDialog if Bluetooth is disconnected
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
@@ -164,7 +174,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
                 TextButton(
                     onClick = {
                         showDialog = false
-                        navController.navigate("bluetooth")
+                        navController.navigate("bluetooth") // Navigate to Bluetooth screen
                     },
                     modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
@@ -177,7 +187,7 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showDialog = false },
+                    onClick = { showDialog = false }, // Dismiss the dialog
                     modifier = Modifier.padding(horizontal = 8.dp)
                 ) {
                     Text(
@@ -194,171 +204,44 @@ fun HomeScreen(navController: NavController,viewModel: BluetoothViewModel) {
     }
 }
 
+/**
+ * Composable function to display activity counters.
+ *
+ * @param homeUiState Current state of the home screen.
+ */
+@Composable
+fun ActivityCounters(homeUiState: HomeUiState) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        ActivityCounter(label = "Standing", count = homeUiState.stand)
+        ActivityCounter(label = "Walking", count = homeUiState.walk)
+        ActivityCounter(label = "Running", count = homeUiState.run)
+        ActivityCounter(label = "Unknown", count = homeUiState.unknownActivity)
+    }
+}
 
-//
-//    // Check Bluetooth connection state
-//    LaunchedEffect(bluetoothUiState.isConnected) {
-//        if (!bluetoothUiState.isConnected) {
-//            showDialog = true
-//        }
-//    }
-//
-//    Scaffold { innerPadding ->
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(innerPadding),
-//            horizontalAlignment = Alignment.CenterHorizontally,
-//            verticalArrangement = Arrangement.Top
-//        ) {
-//            Surface(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(50.dp)
-//                    .padding(innerPadding)
-//                    .padding(horizontal = 8.dp)
-//                    .clip(MaterialTheme.shapes.medium), // Rounded corners
-//                shape = MaterialTheme.shapes.medium,
-//                color = MaterialTheme.colorScheme.tertiaryContainer
-//            ) {
-//                Box(
-//                    modifier = Modifier.fillMaxSize(),
-//                    contentAlignment = Alignment.Center
-//                ) {
-//                    if (bluetoothUiState.isConnected) {
-//                        Text(
-//                            text = "${bluetoothUiState.dataFromBluetooth}",
-//                            style = MaterialTheme.typography.bodyMedium,
-//                            color = MaterialTheme.colorScheme.onBackground
-//                        )
-//                    } else {
-//                        Text(
-//                            text = stringResource(id = R.string.no_connect_ble_dev) ,
-//                            style = MaterialTheme.typography.bodyMedium,
-//                            color = MaterialTheme.colorScheme.onBackground
-//                        )
-//                    }
-//                }
-//            }
-//
-//            Spacer(modifier = Modifier.height(35.dp))
-//
-//            ActivityBarChartWithLegend(
-//                standingPercentage = homeUiState.standPercentage,
-//                walkingPercentage = homeUiState.walkPercentage,
-//                runningPercentage = homeUiState.runPercentage,
-//                modifier = Modifier.fillMaxWidth()
-//            )
-//
-//
-//            Spacer(modifier = Modifier.height(50.dp))
-//
-//            // Row with two icons
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp),
-//                horizontalArrangement = Arrangement.SpaceEvenly,
-//                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Icon(
-//                    painter = painterResource(id = R.drawable.start), // Replace with your desired icon
-//                    contentDescription = "Home Icon",
-//                    //tint = MaterialTheme.colorScheme.primary,
-//                    modifier = Modifier
-//                        .size(70.dp)
-//                        .clickable { },
-//                    tint = Color.Unspecified
-//                )
-//
-//                Icon(
-//                    painter = painterResource(id = R.drawable.pause), // Replace with your desired icon
-//                    contentDescription = "Settings Icon",
-//                    //tint = MaterialTheme.colorScheme.primary,
-//                    modifier = Modifier
-//                        .size(70.dp)
-//                        .clickable { },
-//                    tint = Color.Unspecified
-//                )
-//            }
-//        }
-//    }
-//
-//
-//
-//
-//    // Display AlertDialog if not connected to a Bluetooth device
-//    if (showDialog) {
-//        AlertDialog(
-//            onDismissRequest = { showDialog = false },
-//
-//            title = {
-//                Text(
-//                    text = "No Connection",
-//                    style = MaterialTheme.typography.titleLarge,
-//                    color = MaterialTheme.colorScheme.onPrimaryContainer
-//                )
-//            },
-//            text = {
-//                Text(
-//                    text = stringResource(id = R.string.bluetooth_warnning),
-//                    style = MaterialTheme.typography.bodyMedium,
-//                    color = MaterialTheme.colorScheme.onSurfaceVariant
-//                )
-//            },
-//            confirmButton = {
-//                TextButton(
-//                    onClick = {
-//                        showDialog = false
-//                        navController.navigate("bluetooth")
-//                    },
-//                    modifier = Modifier.padding(horizontal = 8.dp)
-//                ) {
-//                    Text(
-//                        text = "Connect",
-//                        style = MaterialTheme.typography.labelLarge,
-//                        color = MaterialTheme.colorScheme.primary
-//                    )
-//                }
-//            },
-//            dismissButton = {
-//                TextButton(
-//                    onClick = { showDialog = false },
-//                    modifier = Modifier.padding(horizontal = 8.dp)
-//                ) {
-//                    Text(
-//                        text = "Cancel",
-//                        style = MaterialTheme.typography.labelLarge,
-//                        color = MaterialTheme.colorScheme.error
-//                    )
-//                }
-//            },
-//            containerColor = MaterialTheme.colorScheme.surface,
-//            tonalElevation = 8.dp,
-//            modifier = Modifier.padding(horizontal = 16.dp)
-//        )
-//    }
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/**
+ * Composable function to display a single activity counter.
+ *
+ * @param label Label for the activity type.
+ * @param count Count of the activity occurrences.
+ */
+@Composable
+fun ActivityCounter(label: String, count: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        Text(
+            text = count.toString(),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+    }
+}

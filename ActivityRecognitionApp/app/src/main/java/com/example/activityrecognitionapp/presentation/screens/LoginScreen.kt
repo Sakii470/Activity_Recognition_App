@@ -32,52 +32,64 @@ import com.example.activityrecognitionapp.components.PasswordTextFieldComponent
 import com.example.activityrecognitionapp.components.UnderLinedTextComponent
 import com.example.activityrecognitionapp.presentation.states.LoginUiState
 import com.example.activityrecognitionapp.presentation.states.UserState
-import com.example.activityrecognitionapp.presentation.theme.Primary
+import com.example.activityrecognitionapp.presentation.theme.LighterPrimary
 import com.example.activityrecognitionapp.presentation.viewmodels.SupabaseAuthViewModel
 
+/**
+ * Composable function for the Login screen.
+ *
+ * @param navController Navigation controller to handle screen transitions.
+ * @param viewModel ViewModel handling authentication logic.
+ */
 @Composable
 fun LoginScreen(
     navController: NavController,
     viewModel: SupabaseAuthViewModel = hiltViewModel(LocalContext.current as ComponentActivity)
-    ) {
-
-    // Collect the UI state from the ViewModel
+) {
+    // Observe the current UI state from the ViewModel
     val uiLoginState by viewModel.uiLoginState.collectAsState()
     val userState = uiLoginState.userState
     val isLoggedIn = uiLoginState.isLoggedIn
 
-    // Observe userState to navigate to the main screen after successful login
+    // Navigate to home screen upon successful login
     LaunchedEffect(userState) {
-        if (userState is UserState.Success && isLoggedIn)
-             {
+        if (userState is UserState.Success && isLoggedIn) {
             navController.navigate("home") {
                 popUpTo("login") { inclusive = true }
-                Log.d("AppNavigation", "isLogged from LoginS screen ${uiLoginState.isLoggedIn}")
             }
+            Log.d("AppNavigation", "User logged in: ${uiLoginState.isLoggedIn}")
             viewModel.resetUserState()
         }
     }
 
-    // Build the content of the login screen
+    // Render the login content with appropriate callbacks
     LoginScreenContent(
         state = uiLoginState,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
-        onLoginClick = {viewModel.login(uiLoginState.userEmail, uiLoginState.userPassword)},
+        onLoginClick = { viewModel.login(uiLoginState.userEmail, uiLoginState.userPassword) },
         onRegisterClick = { navController.navigate("signUp") },
-        onForgotPasswordClick = { /* handle in forget password case */ }
+        onForgotPasswordClick = { /* Handle forgot password */ }
     )
 
-    // Handle the system back button to navigate back to the sign-up screen
+    // Handle the system back button to navigate to the sign-up screen
     BackHandler {
         navController.navigate("signUp") {
-            popUpTo("login") {
-                inclusive = true
-            } // Opcjonalne: usuwa ekran logowania ze stosu nawigacji
+            popUpTo("login") { inclusive = true }
         }
     }
 }
 
+/**
+ * Composable function that builds the content of the Login screen.
+ *
+ * @param state Current state of the login form.
+ * @param onEmailChange Callback for email input changes.
+ * @param onPasswordChange Callback for password input changes.
+ * @param onLoginClick Callback when the login button is clicked.
+ * @param onRegisterClick Callback to navigate to the sign-up screen.
+ * @param onForgotPasswordClick Callback for forgot password action.
+ */
 @Composable
 fun LoginScreenContent(
     state: LoginUiState,
@@ -88,57 +100,64 @@ fun LoginScreenContent(
     onForgotPasswordClick: () -> Unit
 ) {
     Surface(
-        //color = Color.White,
         modifier = Modifier
             .fillMaxSize()
-        //.background(Color.White)
-        //.padding(24.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp)
         ) {
+            // Greeting text
             NormalTextComponent(value = stringResource(id = R.string.hello))
+
+            // Heading for the login screen
             HeadingTextComponent(
                 value = stringResource(id = R.string.welcome),
                 modifier = Modifier.padding(16.dp)
             )
-            // Email input field with user icon
+
+            // Email input field
             MyTextFieldComponent(
                 labelValue = stringResource(id = R.string.email),
                 painterResource = painterResource(id = R.drawable.user),
                 value = state.userEmail,
                 onValueChange = onEmailChange
             )
-            // Password input field with lock icon
+
+            // Password input field
             PasswordTextFieldComponent(
                 labelValue = stringResource(id = R.string.password),
                 painterResource = painterResource(id = R.drawable.password_locker),
                 value = state.userPassword,
                 onValueChange = onPasswordChange
             )
-            // Display a message based on userState (e.g., error or success message)
+
+            // Display success or error message
             UserStateMessage(userState = state.userState)
 
             Spacer(modifier = Modifier.height(8.dp))
-            // Underlined text for "Forgot your password?" that is clickable
+
+            // Forgot password clickable text
             UnderLinedTextComponent(
                 value = stringResource(id = R.string.forgot_your_password),
                 onButtonClick = onForgotPasswordClick
             )
 
             Spacer(modifier = Modifier.height(15.dp))
-            // Button for login action
+
+            // Login button
             ButtonComponent(
                 value = stringResource(id = R.string.login),
                 onButtonClick = onLoginClick
             )
 
             Spacer(modifier = Modifier.height(10.dp))
-            // Divider line with text "or"
+
+            // Divider with "or" text
             DividerTextComponent()
-            // Clickable text to navigate to the register screen
+
+            // Navigate to the register screen
             ClickableTextComponent(
                 normalText = "",
                 clickableText = " Register",
@@ -146,9 +165,13 @@ fun LoginScreenContent(
             )
         }
     }
-
 }
 
+/**
+ * Composable to display messages based on user state (success or error).
+ *
+ * @param userState Current user state.
+ */
 @Composable
 private fun UserStateMessage(userState: UserState) {
     // Determine the message to display based on the user state
@@ -158,7 +181,8 @@ private fun UserStateMessage(userState: UserState) {
         else -> null
     }
 
+    // Show the message if it exists
     message?.let {
-        Text(text = it, color = Primary)
+        Text(text = it, color = LighterPrimary)
     }
 }

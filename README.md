@@ -1,4 +1,5 @@
 # Mobile Activity Tracking Application
+https://github.com/user-attachments/assets/db8ca199-1c28-496f-8dc5-1e60bcd79d2a
 ## Overview <br>
 This Android mobile application is part of a comprehensive system designed to detect and monitor human physical activities in real-time. The system consists of a measurement wristband and this mobile app, working together to identify and display activities such as standing, walking, running, or unknown movements.
 
